@@ -4,6 +4,7 @@ const path = require("node:path");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 5173);
+const host = process.env.HOST || "0.0.0.0";
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -43,6 +44,6 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Roster Builder running at http://localhost:${port}`);
+server.listen(port, host, () => {
+  console.log(`Roster Builder running at http://${host}:${port}`);
 });
