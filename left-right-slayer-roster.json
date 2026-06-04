@@ -6,7 +6,7 @@
     "date": "2026-06-04",
     "time": "",
     "lead": "",
-    "notes": "Imported from text roster. Right Slayer and Left Slayer are assignable role tags, not encounters."
+    "notes": "Imported from text roster. Right Slayer and Left Slayer are saved as each role's slayerTag, not encounters."
   },
   "roles": [
     {
@@ -16,7 +16,7 @@
       "short": "MT",
       "color": "#b45309",
       "player": "@st stephen",
-      "tag": "Right Slayer"
+      "slayerTag": "Right Slayer"
     },
     {
       "id": "off-tank",
@@ -25,7 +25,7 @@
       "short": "OT",
       "color": "#6d5bd0",
       "player": "@Jerry Tan",
-      "tag": "Right Slayer"
+      "slayerTag": "Right Slayer"
     },
     {
       "id": "courage-healer",
@@ -34,7 +34,7 @@
       "short": "H1",
       "color": "#0f766e",
       "player": "@juneskaa \\u272e",
-      "tag": "Right Slayer"
+      "slayerTag": "Right Slayer"
     },
     {
       "id": "slayer-healer",
@@ -43,7 +43,7 @@
       "short": "H2",
       "color": "#c24136",
       "player": "@unknown-user",
-      "tag": "Right Slayer"
+      "slayerTag": "Right Slayer"
     },
     {
       "id": "zenkosh",
@@ -52,7 +52,7 @@
       "short": "ZK",
       "color": "#8b5a2b",
       "player": "@Aletheia",
-      "tag": "Right Slayer"
+      "slayerTag": "Right Slayer"
     },
     {
       "id": "slayer-dps",
@@ -61,7 +61,7 @@
       "short": "WM",
       "color": "#b45309",
       "player": "@Rivaka",
-      "tag": "Right Slayer"
+      "slayerTag": "Right Slayer"
     },
     {
       "id": "force-dps",
@@ -70,7 +70,7 @@
       "short": "DD",
       "color": "#0f8a78",
       "player": "@unknown-user",
-      "tag": "Left Slayer"
+      "slayerTag": "Left Slayer"
     },
     {
       "id": "morag-dps",
@@ -79,7 +79,7 @@
       "short": "MD",
       "color": "#5b6f7c",
       "player": "@Sweating",
-      "tag": "Left Slayer"
+      "slayerTag": "Left Slayer"
     },
     {
       "id": "parse-nightblade",
@@ -88,7 +88,7 @@
       "short": "NB",
       "color": "#b45309",
       "player": "@SavageAudacity",
-      "tag": "Left Slayer"
+      "slayerTag": "Left Slayer"
     },
     {
       "id": "parse-warden",
@@ -97,7 +97,7 @@
       "short": "Den",
       "color": "#0f766e",
       "player": "@PrxvokedLegend",
-      "tag": "Left Slayer"
+      "slayerTag": "Left Slayer"
     },
     {
       "id": "parse-templar",
@@ -106,7 +106,7 @@
       "short": "Plar",
       "color": "#a16207",
       "player": "@unknown-user",
-      "tag": "Left Slayer"
+      "slayerTag": "Left Slayer"
     },
     {
       "id": "parse-open",
@@ -115,7 +115,7 @@
       "short": "Parse",
       "color": "#4b5563",
       "player": "@unknown-user",
-      "tag": "Left Slayer"
+      "slayerTag": "Left Slayer"
     }
   ],
   "encounters": [

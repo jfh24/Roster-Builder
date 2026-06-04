@@ -1,0 +1,487 @@
+{
+  "version": 2,
+  "meta": {
+    "title": "Dynasty",
+    "trial": "Dynasty DB",
+    "date": "2026-06-08",
+    "time": "23:00",
+    "lead": "",
+    "notes": "Generated from Dynasty DB Roster (1).pdf."
+  },
+  "roles": [
+    {
+      "id": "off-tank",
+      "name": "Off Tank",
+      "className": "Sorcerer",
+      "short": "OT",
+      "color": "#6d5bd0",
+      "player": "@Jerry Tan",
+      "slayerTag": "Right Slayer"
+    },
+    {
+      "id": "courage-healer",
+      "name": "Courage Healer",
+      "className": "Warden",
+      "short": "H2",
+      "color": "#0f766e",
+      "player": "@juneskaa",
+      "slayerTag": "Right Slayer"
+    },
+    {
+      "id": "slayer-dps",
+      "name": "Slayer DPS",
+      "className": "Nightblade",
+      "short": "R3",
+      "color": "#b45309",
+      "player": "@Matrix",
+      "slayerTag": "Right Slayer"
+    },
+    {
+      "id": "parse-nightblade",
+      "name": "Parse DPS",
+      "className": "Nightblade",
+      "short": "M3",
+      "color": "#b45309",
+      "player": "@SavageAudacity",
+      "slayerTag": "Right Slayer"
+    },
+    {
+      "id": "parse-warden",
+      "name": "Parse DPS",
+      "className": "Warden",
+      "short": "M4",
+      "color": "#0f766e",
+      "player": "@PrxvokedLegend",
+      "slayerTag": "Right Slayer"
+    },
+    {
+      "id": "parse-open",
+      "name": "Parse DPS",
+      "className": "Open",
+      "short": "R4",
+      "color": "#4b5563",
+      "player": "@Dio",
+      "slayerTag": "Right Slayer"
+    },
+    {
+      "id": "main-tank",
+      "name": "Main Tank",
+      "className": "Nightblade",
+      "short": "MT",
+      "color": "#b45309",
+      "player": "@st stephen",
+      "slayerTag": "Left Slayer"
+    },
+    {
+      "id": "slayer-healer",
+      "name": "Slayer Healer",
+      "className": "Dragonknight",
+      "short": "H1",
+      "color": "#c24136",
+      "player": "@Amadra",
+      "slayerTag": "Left Slayer"
+    },
+    {
+      "id": "zenkosh",
+      "name": "ZenKosh",
+      "className": "Earthen Heart + Ardent Flame + X",
+      "short": "M1",
+      "color": "#8b5a2b",
+      "player": "@Aletheia",
+      "slayerTag": "Left Slayer"
+    },
+    {
+      "id": "force-dps",
+      "name": "Force DPS",
+      "className": "Arcanist",
+      "short": "R1",
+      "color": "#0f8a78",
+      "player": "@Cherk",
+      "slayerTag": "Left Slayer"
+    },
+    {
+      "id": "morag-dps",
+      "name": "Morag DPS",
+      "className": "Necromancer",
+      "short": "M2",
+      "color": "#5b6f7c",
+      "player": "@Sweating",
+      "slayerTag": "Left Slayer"
+    },
+    {
+      "id": "parse-templar",
+      "name": "Parse DPS",
+      "className": "Templar",
+      "short": "R2",
+      "color": "#a16207",
+      "player": "@Be_Carried",
+      "slayerTag": "Left Slayer"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "enc-yandir",
+      "name": "Yandir",
+      "notes": "",
+      "rows": {
+        "off-tank": {
+          "gear": "Crypt | PA | LE",
+          "skills": "Regenerative Ward, Liquid Lightning, Exhilirating Drain, Warding-Gladiator Contingency; Echoing Vigor",
+          "ultimates": "Crypt",
+          "passives": "Calculated Defense",
+          "misc": ""
+        },
+        "courage-healer": {
+          "gear": "Naz, SPC, PP",
+          "skills": "BuddingSeeds; ExpansiveFrostCloak; WintersRevenge; MysticOrb; arcticblast; EleSus",
+          "ultimates": "Aggressive Horn",
+          "passives": "Bountiful Harvest & Tundra's Maw",
+          "misc": "Infused frost glyph backbar, charged front bar"
+        },
+        "slayer-dps": {
+          "gear": "Bosses WM, MK",
+          "skills": "Status-Off Balance Knife",
+          "ultimates": "DPS Ult",
+          "passives": "Nocturnal Inspiration & Above and beyond",
+          "misc": ""
+        },
+        "parse-nightblade": {
+          "gear": "Parse Sets",
+          "skills": "",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-warden": {
+          "gear": "Parse Sets",
+          "skills": "Status-Off Balance Knife",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-open": {
+          "gear": "Parse Sets",
+          "skills": "",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "main-tank": {
+          "gear": "Baron Zaudrus, StoneHulk, PW",
+          "skills": "Inner Rage, Warding-Gladiator Contingency, Elemental Blockade",
+          "ultimates": "AggressiveHorn",
+          "passives": "Cutthroat's Focus & Share the Spoils",
+          "misc": "Infused Crusher, Major Cowardice"
+        },
+        "slayer-healer": {
+          "gear": "Spaulder, Master Resto, MA, Jorvuld's",
+          "skills": "IgneousWeapon; FragmentedShield; EchoingVigor; MysticOrb; OverflowingAltar",
+          "ultimates": "Standard Of Might",
+          "passives": "Lead From the Front",
+          "misc": "Infused weakening glyph back bar"
+        },
+        "zenkosh": {
+          "gear": "Z'ens, Alkosh",
+          "skills": "Stagger",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "force-dps": {
+          "gear": "Parse Sets",
+          "skills": "Fulminating Rune, Banner, Echoing Vigor",
+          "ultimates": "DPS Ult",
+          "passives": "Ink Scribe's Verve",
+          "misc": "Shock, Heal, Courage on Banner Reaving Blows CP"
+        },
+        "morag-dps": {
+          "gear": "Morag Tong",
+          "skills": "Unnerving Boneyard, Banner",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": "Shock, Class Mastery, Courage on Banner"
+        },
+        "parse-templar": {
+          "gear": "Parse Sets",
+          "skills": "",
+          "ultimates": "DPS Ult",
+          "passives": "Bright Harbinger",
+          "misc": "Iffy on this one don't think it is worth it"
+        }
+      }
+    },
+    {
+      "id": "enc-vrol",
+      "name": "Vrol",
+      "notes": "",
+      "rows": {
+        "off-tank": {
+          "gear": "Crypt, PA, LE",
+          "skills": "Regenerative Ward, Liquid Lightning, Exhilirating Drain, Warding-Gladiator Contingency; Echoing Vigor",
+          "ultimates": "Crypt",
+          "passives": "Calculated Defense",
+          "misc": "Group: Right Slayer"
+        },
+        "courage-healer": {
+          "gear": "Naz, SPC, PP",
+          "skills": "BuddingSeeds; ExpansiveFrostCloak; WintersRevenge; MysticOrb; arcticblast; EleSus",
+          "ultimates": "Aggressive Horn",
+          "passives": "Bountiful Harvest & Tundra's Maw",
+          "misc": "Group: Left Slayer Infused frost glyph backbar, charged front bar"
+        },
+        "slayer-dps": {
+          "gear": "WM, MK",
+          "skills": "Martial Knife",
+          "ultimates": "DPS Ult",
+          "passives": "Nocturnal Inspiration & Above and beyond",
+          "misc": ""
+        },
+        "parse-nightblade": {
+          "gear": "Parse Sets",
+          "skills": "",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-warden": {
+          "gear": "Parse Sets",
+          "skills": "Status-Off Balance Knife",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-open": {
+          "gear": "Parse Sets",
+          "skills": "",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "main-tank": {
+          "gear": "BZ, StoneHulk, PW",
+          "skills": "Inner Rage, Warding-Gladiator Contingency",
+          "ultimates": "AggressiveHorn",
+          "passives": "Cutthroat's Focus & Share the Spoils",
+          "misc": "Group: Left Slayer wall w/ Crusher, Major Cowardice"
+        },
+        "slayer-healer": {
+          "gear": "Spaulder, Master Resto, MA, Jorvuld's",
+          "skills": "IgneousWeapon; FragmentedShield; EchoingVigor; MysticOrb; OverflowingAltar",
+          "ultimates": "Standard Of Might",
+          "passives": "Lead From the Front",
+          "misc": "Group: Right Slayer Infused weakening glyph back bar"
+        },
+        "zenkosh": {
+          "gear": "Z'ens, Alkosh",
+          "skills": "Stagger",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": "Group: Left Slayer"
+        },
+        "force-dps": {
+          "gear": "Parse Sets",
+          "skills": "Fulminating Rune, Banner, Echoing Vigor",
+          "ultimates": "DPS Ult",
+          "passives": "Ink Scribe's Verve",
+          "misc": "Heal on banner Reaving Blows CP"
+        },
+        "morag-dps": {
+          "gear": "Morag Tong",
+          "skills": "Unnerving Boneyard, Banner",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-templar": {
+          "gear": "Parse Sets",
+          "skills": "",
+          "ultimates": "DPS Ult",
+          "passives": "Bright Harbinger",
+          "misc": "Might swap to another class"
+        }
+      }
+    },
+    {
+      "id": "enc-falg",
+      "name": "Falg",
+      "notes": "",
+      "rows": {
+        "off-tank": {
+          "gear": "Crypt, PA, LE",
+          "skills": "Regenerative Ward, Liquid Lightning, Exhilirating Drain, Warding-Gladiator Contingency; Echoing Vigor",
+          "ultimates": "Crypt",
+          "passives": "Calculated Defense",
+          "misc": "Group: Right Slayer"
+        },
+        "courage-healer": {
+          "gear": "Naz, SPC, PP",
+          "skills": "BuddingSeeds; ExpansiveFrostCloak; WintersRevenge; MysticOrb; arcticblast; EleSus",
+          "ultimates": "Aggressive Horn",
+          "passives": "Bountiful Harvest & Tundra's Maw",
+          "misc": "Group: Left Slayer Infused frost glyph backbar, charged front bar"
+        },
+        "slayer-dps": {
+          "gear": "WM, MK",
+          "skills": "Martial Knife, Carve",
+          "ultimates": "DPS Ult",
+          "passives": "Nocturnal Inspiration & Above and beyond",
+          "misc": ""
+        },
+        "parse-nightblade": {
+          "gear": "Parse Sets",
+          "skills": "Carve",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-warden": {
+          "gear": "Parse Sets",
+          "skills": "Status-Off Balance Knife, Carve",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-open": {
+          "gear": "Parse Sets",
+          "skills": "Carve",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "main-tank": {
+          "gear": "BZ, StoneHulk, PW",
+          "skills": "Inner Rage, Warding-Gladiator Contingency",
+          "ultimates": "AggressiveHorn",
+          "passives": "Cutthroat's Focus & Share the Spoils",
+          "misc": "Group: Left Slayer wall w/ Crusher, Major Cowardice"
+        },
+        "slayer-healer": {
+          "gear": "Spaulder, Master Resto, MA, Jorvuld's",
+          "skills": "IgneousWeapon; FragmentedShield; EchoingVigor; MysticOrb; OverflowingAltar",
+          "ultimates": "Standard Of Might",
+          "passives": "Lead From the Front",
+          "misc": "Group: Right Slayer Infused weakening glyph back bar"
+        },
+        "zenkosh": {
+          "gear": "Z'ens, Alkosh",
+          "skills": "Stagger, Carve",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": "Group: Left Slayer"
+        },
+        "force-dps": {
+          "gear": "Parse Sets",
+          "skills": "Fulminating Rune, Banner, Echoing Vigor",
+          "ultimates": "DPS Ult",
+          "passives": "Ink Scribe's Verve",
+          "misc": "Shock, Heal, Courage on banner Reaving Blows CP"
+        },
+        "morag-dps": {
+          "gear": "Morag Tong",
+          "skills": "Unnerving Boneyard, Banner, Carve",
+          "ultimates": "DPS Ult",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-templar": {
+          "gear": "Parse Sets",
+          "skills": "Carve",
+          "ultimates": "DPS Ult",
+          "passives": "Bright Harbinger",
+          "misc": "Might Swap to another class"
+        }
+      }
+    },
+    {
+      "id": "enc-trash",
+      "name": "Trash",
+      "notes": "",
+      "rows": {
+        "off-tank": {
+          "gear": "Bloodspawn, Powerful Assault, Lucent Echoes",
+          "skills": "Charging Manuever, Regenerative Ward, Liquid Lightning, Exhilarating Drain, Echoing Vigor",
+          "ultimates": "Any",
+          "passives": "Calculated Defense",
+          "misc": "Right Slayer"
+        },
+        "courage-healer": {
+          "gear": "The Blind, Spell Power Cure, Pillagers Profit, Master Resto",
+          "skills": "Budding Seeds, Expansive Frost Cloak, Arctic Blast, Winters Revenge, Mystic Orb",
+          "ultimates": "Warhorn",
+          "passives": "Bountiful Harvest & Tundra's Maw",
+          "misc": "Left Slayer"
+        },
+        "slayer-dps": {
+          "gear": "War Machine",
+          "skills": "Martial Knife",
+          "ultimates": "Fiery Rage",
+          "passives": "Nocturnal Inspiration & Above and Beyond",
+          "misc": "Left Slayer"
+        },
+        "parse-nightblade": {
+          "gear": "Tide-Born, Sul Xan",
+          "skills": "Full Damage",
+          "ultimates": "Fiery Rage",
+          "passives": "Above and beyond & An Eye for Exploitation",
+          "misc": "Right Slayer"
+        },
+        "parse-warden": {
+          "gear": "Full Damage",
+          "skills": "Status Knife",
+          "ultimates": "Full Damage",
+          "passives": "Full Damage",
+          "misc": "Right Slayer"
+        },
+        "parse-open": {
+          "gear": "Full Damage",
+          "skills": "Full Damage",
+          "ultimates": "Full Damage",
+          "passives": "Full Damage",
+          "misc": "Right Slayer"
+        },
+        "main-tank": {
+          "gear": "Bloodspawn, Turning Tide, Pearlescent Ward",
+          "skills": "Pulsar",
+          "ultimates": "Warhorn",
+          "passives": "Cutthroat's Focus & Share the Spoils",
+          "misc": "Left Slayer"
+        },
+        "slayer-healer": {
+          "gear": "Spaulder, Master Architect, Jorvuld's Guidance, Master Resto",
+          "skills": "Igneous Weapons, Fragmented Shield, Mystic Orb, Overflowing Altar",
+          "ultimates": "Standard of Might",
+          "passives": "Lead From the Front",
+          "misc": "Right Slayer"
+        },
+        "zenkosh": {
+          "gear": "Zen's, Alkosh",
+          "skills": "Magma Fist",
+          "ultimates": "Shifting Standard",
+          "passives": "",
+          "misc": "Left Slayer"
+        },
+        "force-dps": {
+          "gear": "Spattering Disjunciton, Sul xan",
+          "skills": "Banner",
+          "ultimates": "Languid Eye or Fiery Rage",
+          "passives": "Ink Scribe's Verve",
+          "misc": "Left Slayer Shock, Heal, Courage on banner"
+        },
+        "morag-dps": {
+          "gear": "Corpseburster, ?",
+          "skills": "Unnerving Boneyard, Banner",
+          "ultimates": "Fiery Rage",
+          "passives": "Nothing Wasted & Cycle Unending",
+          "misc": "Right Slayer Shock, Class mastery, Courage on banner"
+        },
+        "parse-templar": {
+          "gear": "Full Damage",
+          "skills": "Full Damage",
+          "ultimates": "Full Damage",
+          "passives": "Bright Harbinger",
+          "misc": "Left Slayer"
+        }
+      }
+    }
+  ]
+}

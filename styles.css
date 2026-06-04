@@ -285,6 +285,30 @@ textarea {
   text-align: left;
 }
 
+.nav-item[draggable="true"] {
+  cursor: grab;
+}
+
+.nav-item.is-dragging,
+.role-editor.is-dragging,
+.role-row.is-dragging {
+  opacity: 0.55;
+  transform: scale(0.99);
+}
+
+.nav-item.is-drop-target,
+.role-editor.is-drop-target,
+.role-row.is-drop-target {
+  border-color: rgba(15, 118, 110, 0.7);
+  box-shadow: inset 0 3px 0 var(--teal);
+}
+
+.nav-item.is-drop-target.is-drop-after,
+.role-editor.is-drop-target.is-drop-after,
+.role-row.is-drop-target.is-drop-after {
+  box-shadow: inset 0 -3px 0 var(--teal);
+}
+
 .nav-item:hover,
 .nav-item.is-active {
   border-color: rgba(15, 118, 110, 0.55);
@@ -321,14 +345,36 @@ textarea {
 
 .role-editor-top {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 28px 34px minmax(0, 1fr);
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 .role-editor-top strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.78rem;
   text-transform: uppercase;
+}
+
+.drag-handle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--role-color, var(--teal)) 28%, var(--line));
+  border-radius: 8px;
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--role-color, var(--teal)) 72%, #111111) 1.4px, transparent 1.6px) 6px 6px / 7px 7px,
+    linear-gradient(180deg, #ffffff, color-mix(in srgb, var(--role-color, var(--teal)) 8%, #ffffff));
+  box-shadow:
+    0 4px 9px rgba(31, 37, 37, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .role-editor label {
@@ -583,9 +629,9 @@ textarea {
 
 .role-cell {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-columns: 24px 38px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   padding: 10px;
   border-right: 1px solid var(--line);
@@ -632,6 +678,12 @@ textarea {
   font-size: 0.78rem;
   font-style: normal;
   font-weight: 840;
+}
+
+.sheet-role-drag-handle {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
 }
 
 .field {
@@ -686,7 +738,7 @@ textarea {
 
 .export-grid {
   display: grid;
-  grid-template-columns: 0.51fr repeat(3, minmax(0, 1fr));
+  grid-template-columns: 0.47fr repeat(var(--export-encounter-count, 5), minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -1009,6 +1061,147 @@ body.export-preview .export-page {
   margin-bottom: 24px;
 }
 
+.png-export-stage {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: calc(11in - 0.44in);
+  background: #edf2f3;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.png-export-frame {
+  width: calc(11in - 0.44in);
+  min-height: calc(8.5in - 0.44in);
+  background: #edf2f3;
+}
+
+.png-export-stage .export-page,
+.png-export-frame .export-page {
+  display: block;
+  width: calc(11in - 0.44in);
+  height: calc(8.5in - 0.44in);
+  margin: 0;
+  padding: 0.16in;
+  border-radius: 0.18in;
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.13), transparent 42%),
+    linear-gradient(315deg, rgba(194, 65, 54, 0.12), transparent 38%),
+    #f8fbfb;
+  box-shadow:
+    0 0.12in 0.22in rgba(31, 37, 37, 0.16),
+    0 0.035in 0.07in rgba(31, 37, 37, 0.12),
+    inset 0 0.012in 0 rgba(255, 255, 255, 0.88);
+}
+
+.png-export-stage .export-grid,
+.png-export-frame .export-grid {
+  height: 100%;
+  grid-template-columns: 0.47fr repeat(var(--export-encounter-count, 5), minmax(0, 1fr));
+  grid-template-rows: 0.58in 0.32in repeat(6, minmax(0.78in, 1fr));
+  gap: 0.055in;
+}
+
+.png-export-stage .export-group-row,
+.png-export-frame .export-group-row {
+  min-height: 0;
+  border-radius: 0.09in;
+  padding: 0.045in 0.06in;
+}
+
+.png-export-stage .export-group-row strong,
+.png-export-frame .export-group-row strong {
+  font-size: 7.2pt;
+}
+
+.png-export-stage .export-group-row span,
+.png-export-frame .export-group-row span {
+  font-size: 5.3pt;
+}
+
+.png-export-stage .export-program-cell,
+.png-export-frame .export-program-cell {
+  min-height: 0;
+  border-radius: 0.13in;
+  padding: 0.06in;
+}
+
+.png-export-stage .export-program-cell strong,
+.png-export-frame .export-program-cell strong {
+  font-size: 7.8pt;
+}
+
+.png-export-stage .export-program-cell span,
+.png-export-stage .export-encounter-pill,
+.png-export-frame .export-program-cell span,
+.png-export-frame .export-encounter-pill {
+  font-size: 5.8pt;
+}
+
+.png-export-stage .export-encounter-pill,
+.png-export-frame .export-encounter-pill {
+  min-height: 0.32in;
+  border-radius: 0.16in;
+  padding: 0.04in 0.055in;
+}
+
+.png-export-stage .export-role-cell,
+.png-export-stage .export-info-cell,
+.png-export-frame .export-role-cell,
+.png-export-frame .export-info-cell {
+  min-height: 0;
+  border-radius: 0.1in;
+}
+
+.png-export-stage .export-role-cell,
+.png-export-frame .export-role-cell {
+  grid-template-columns: 0.18in minmax(0, 1fr);
+  gap: 0.03in;
+  padding: 0.035in;
+}
+
+.png-export-stage .export-role-token,
+.png-export-frame .export-role-token {
+  width: 0.17in;
+  height: 0.15in;
+  border-radius: 0.045in;
+  font-size: 4pt;
+}
+
+.png-export-stage .export-role-cell strong,
+.png-export-frame .export-role-cell strong {
+  font-size: 5.2pt;
+}
+
+.png-export-stage .export-role-cell span,
+.png-export-frame .export-role-cell span {
+  font-size: 4.3pt;
+}
+
+.png-export-stage .export-role-cell em,
+.png-export-stage .export-info-cell,
+.png-export-frame .export-role-cell em,
+.png-export-frame .export-info-cell {
+  font-size: 4.9pt;
+}
+
+.png-export-stage .export-role-cell em,
+.png-export-frame .export-role-cell em {
+  margin-top: 0.018in;
+}
+
+.png-export-stage .export-info-cell,
+.png-export-frame .export-info-cell {
+  padding: 0.035in 0.045in;
+  line-height: 1.08;
+}
+
+.png-export-stage .export-empty-note,
+.png-export-frame .export-empty-note {
+  font-size: 4.9pt;
+}
+
 @media (max-width: 980px) {
   .topbar {
     align-items: flex-start;
@@ -1196,7 +1389,7 @@ body.export-preview .export-page {
 
   .export-grid {
     height: 100%;
-    grid-template-columns: 0.47fr repeat(3, minmax(0, 1fr));
+    grid-template-columns: 0.47fr repeat(var(--export-encounter-count, 5), minmax(0, 1fr));
     grid-template-rows: 0.58in 0.32in repeat(6, minmax(0.78in, 1fr));
     gap: 0.055in;
   }
@@ -1240,12 +1433,12 @@ body.export-preview .export-page {
   }
 
   .export-program-cell strong {
-    font-size: 8.2pt;
+    font-size: 7.8pt;
   }
 
   .export-program-cell span,
   .export-encounter-pill {
-    font-size: 6.7pt;
+    font-size: 5.8pt;
   }
 
   .export-encounter-head {
@@ -1283,50 +1476,50 @@ body.export-preview .export-page {
   }
 
   .export-role-cell {
-    grid-template-columns: 0.2in minmax(0, 1fr);
-    gap: 0.035in;
-    padding: 0.04in;
+    grid-template-columns: 0.18in minmax(0, 1fr);
+    gap: 0.03in;
+    padding: 0.035in;
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--role-color) 18%, #ffffff), #ffffff 70%) !important;
   }
 
   .export-role-token {
-    width: 0.18in;
-    height: 0.16in;
-    border-radius: 0.05in;
-    font-size: 4.4pt;
+    width: 0.17in;
+    height: 0.15in;
+    border-radius: 0.045in;
+    font-size: 4pt;
     background:
       linear-gradient(180deg, #ffffff, color-mix(in srgb, var(--role-color) 13%, #ffffff)) !important;
     print-color-adjust: exact;
   }
 
   .export-role-cell strong {
-    font-size: 5.8pt;
+    font-size: 5.2pt;
   }
 
   .export-role-cell span {
-    font-size: 4.8pt;
+    font-size: 4.3pt;
   }
 
   .export-role-cell em,
   .export-info-cell {
-    font-size: 5.8pt;
+    font-size: 4.9pt;
   }
 
   .export-role-cell em {
-    margin-top: 0.02in;
+    margin-top: 0.018in;
   }
 
   .export-info-cell {
-    padding: 0.045in 0.055in;
+    padding: 0.035in 0.045in;
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 251, 0.96)) !important;
-    line-height: 1.1;
+    line-height: 1.08;
     print-color-adjust: exact;
   }
 
   .export-empty-note {
-    font-size: 5.8pt;
+    font-size: 4.9pt;
   }
 
   .sheet-header {
