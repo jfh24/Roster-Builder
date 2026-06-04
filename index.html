@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Roster Builder</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar no-print">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div>
+            <p>Trial roster</p>
+            <h1>Roster Builder</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="button secondary" type="button" id="newRosterButton">New</button>
+          <button class="button secondary" type="button" id="importButton">Import JSON</button>
+          <button class="button secondary" type="button" id="exportButton">Export JSON</button>
+          <button class="button primary" type="button" id="printButton">Export PDF</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="side-panel no-print" aria-label="Roster controls">
+          <section class="panel-block">
+            <div class="panel-heading">
+              <h2>Roster</h2>
+              <span id="saveStatus" aria-live="polite">Saved</span>
+            </div>
+            <label class="control-label" for="rosterTitle">
+              Roster name
+              <input id="rosterTitle" type="text" autocomplete="off">
+            </label>
+            <label class="control-label" for="trialName">
+              Trial
+              <input id="trialName" type="text" autocomplete="off">
+            </label>
+            <label class="control-label" for="rosterDate">
+              Date
+              <input id="rosterDate" type="date">
+            </label>
+            <label class="control-label" for="rosterTime">
+              Time
+              <input id="rosterTime" type="time">
+            </label>
+            <label class="control-label" for="rosterLead">
+              Lead
+              <input id="rosterLead" type="text" autocomplete="off">
+            </label>
+            <label class="control-label" for="rosterNotes">
+              Notes
+              <textarea id="rosterNotes" rows="4"></textarea>
+            </label>
+          </section>
+
+          <section class="panel-block">
+            <div class="panel-heading">
+              <h2>Encounters</h2>
+              <span id="encounterCount">0</span>
+            </div>
+            <div class="button-grid">
+              <button class="button secondary" type="button" id="addEncounterButton">Add</button>
+              <button class="button secondary" type="button" id="duplicateEncounterButton">Duplicate</button>
+              <button class="button danger" type="button" id="removeEncounterButton">Remove</button>
+            </div>
+            <nav class="encounter-nav" id="encounterNav" aria-label="Encounter list"></nav>
+          </section>
+
+          <section class="panel-block">
+            <div class="panel-heading">
+              <h2>Roles</h2>
+              <span>12</span>
+            </div>
+            <div class="role-key" id="roleKey"></div>
+          </section>
+        </aside>
+
+        <section class="sheet-wrap" aria-label="Editable roster sheet">
+          <div class="roster-sheet" id="rosterSheet"></div>
+          <div class="export-sheet" id="exportSheet" aria-hidden="true"></div>
+        </section>
+      </main>
+    </div>
+
+    <input id="importFile" type="file" accept="application/json,.json" hidden>
+    <script src="app.js" defer></script>
+  </body>
+</html>
