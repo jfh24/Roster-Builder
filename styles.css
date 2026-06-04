@@ -340,7 +340,8 @@ textarea {
   text-transform: uppercase;
 }
 
-.role-editor input {
+.role-editor input,
+.role-editor select {
   min-height: 32px;
   padding: 7px 8px;
   font-size: 0.82rem;
@@ -594,6 +595,7 @@ textarea {
 
 .role-cell strong,
 .role-cell span,
+.role-cell small,
 .role-cell em {
   display: block;
   min-width: 0;
@@ -610,6 +612,18 @@ textarea {
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 760;
+}
+
+.role-cell small {
+  width: fit-content;
+  margin-top: 5px;
+  border: 1px solid color-mix(in srgb, var(--role-color) 32%, #ffffff);
+  border-radius: 999px;
+  padding: 2px 6px;
+  color: color-mix(in srgb, var(--role-color) 72%, #111111);
+  background: color-mix(in srgb, var(--role-color) 10%, #ffffff);
+  font-size: 0.64rem;
+  font-weight: 860;
 }
 
 .role-cell em {
@@ -676,12 +690,140 @@ textarea {
   gap: 10px;
 }
 
-.export-grid > * {
+.export-grid > *,
+.export-page-head > *,
+.export-subpanel-grid > *,
+.export-subpanel-table > * {
   min-width: 0;
 }
 
+.export-group-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+  border-radius: 13px;
+  padding: 8px 12px;
+  color: #ffffff;
+  background:
+    linear-gradient(135deg, #202828, #2e3b3c 56%, #0f766e);
+  box-shadow:
+    0 12px 18px rgba(21, 32, 33, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.export-group-row strong,
+.export-group-row span {
+  display: block;
+}
+
+.export-group-row strong {
+  font-size: 0.86rem;
+}
+
+.export-group-row span {
+  color: #d6e4e3;
+  font-size: 0.66rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.export-page-head {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.35fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.export-page-encounters {
+  display: grid;
+  grid-template-columns: repeat(var(--encounter-count), minmax(0, 1fr));
+  gap: 10px;
+}
+
+.export-subpanel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.export-subpanel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 9px;
+  min-height: 0;
+  border: 1px solid rgba(21, 32, 33, 0.13);
+  border-radius: 18px;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(244, 249, 249, 0.92));
+  box-shadow:
+    0 18px 34px rgba(31, 37, 37, 0.12),
+    0 4px 0 rgba(31, 37, 37, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.export-subpanel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+  border-radius: 12px;
+  padding: 8px 11px;
+  color: #ffffff;
+  background:
+    linear-gradient(135deg, #202828, #2e3b3c 56%, #0f766e);
+  box-shadow:
+    0 10px 16px rgba(21, 32, 33, 0.17),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.export-subpanel-title strong,
+.export-subpanel-title span {
+  display: block;
+}
+
+.export-subpanel-title strong {
+  font-size: 0.86rem;
+}
+
+.export-subpanel-title span {
+  color: #d6e4e3;
+  font-size: 0.66rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.export-subpanel-table {
+  display: grid;
+  grid-template-columns: 0.9fr repeat(var(--encounter-count), minmax(0, 1fr));
+  gap: 7px;
+}
+
+.export-role-head,
+.export-detail-head {
+  min-height: 26px;
+  display: grid;
+  align-items: center;
+  border: 1px solid rgba(21, 32, 33, 0.1);
+  border-radius: 10px;
+  padding: 5px 7px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #5d6a6c;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.export-detail-head {
+  text-align: center;
+}
+
 .export-program-cell,
-.export-encounter-head {
+.export-page-encounters {
   min-height: 68px;
 }
 
@@ -716,20 +858,6 @@ textarea {
   font-weight: 780;
 }
 
-.export-encounter-head {
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(21, 32, 33, 0.14);
-  border-radius: 16px;
-  padding: 9px 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(240, 246, 245, 0.98));
-  box-shadow:
-    0 12px 21px rgba(31, 37, 37, 0.13),
-    0 3px 0 rgba(31, 37, 37, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-}
-
 .export-encounter-pill {
   width: min(92%, 230px);
   min-height: 42px;
@@ -748,6 +876,8 @@ textarea {
   font-weight: 850;
   text-align: center;
   overflow-wrap: anywhere;
+  align-self: center;
+  justify-self: center;
 }
 
 .export-role-cell,
@@ -973,6 +1103,7 @@ body.export-preview .export-page {
   }
 
   .export-page {
+    display: block;
     break-after: page;
     page-break-after: always;
     height: calc(8.5in - 0.44in);
@@ -994,15 +1125,104 @@ body.export-preview .export-page {
     page-break-after: auto;
   }
 
+  .export-page-head {
+    grid-template-columns: 1.12in minmax(0, 1fr);
+    gap: 0.06in;
+    min-height: 0;
+    margin-bottom: 0;
+  }
+
+  .export-page-encounters {
+    min-height: 0;
+    gap: 0.06in;
+  }
+
+  .export-subpanel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.07in;
+    min-height: 0;
+  }
+
+  .export-subpanel {
+    grid-template-rows: 0.3in minmax(0, 1fr);
+    gap: 0.045in;
+    min-height: 0;
+    border-radius: 0.13in;
+    padding: 0.055in;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(244, 249, 249, 0.92)) !important;
+    box-shadow:
+      0 0.08in 0.15in rgba(31, 37, 37, 0.12),
+      0 0.022in 0 rgba(31, 37, 37, 0.06),
+      inset 0 0.01in 0 rgba(255, 255, 255, 0.88);
+    print-color-adjust: exact;
+  }
+
+  .export-subpanel-title {
+    min-height: 0;
+    border-radius: 0.09in;
+    padding: 0.045in 0.06in;
+    background:
+      linear-gradient(135deg, #202828, #2e3b3c 56%, #0f766e) !important;
+    box-shadow:
+      0 0.055in 0.08in rgba(21, 32, 33, 0.16),
+      inset 0 0.01in 0 rgba(255, 255, 255, 0.22);
+    print-color-adjust: exact;
+  }
+
+  .export-subpanel-title strong {
+    font-size: 7.2pt;
+  }
+
+  .export-subpanel-title span {
+    font-size: 5.3pt;
+  }
+
+  .export-subpanel-table {
+    grid-template-columns: 0.82fr repeat(var(--encounter-count), minmax(0, 1fr));
+    gap: 0.035in;
+    min-height: 0;
+  }
+
+  .export-role-head,
+  .export-detail-head {
+    min-height: 0.18in;
+    border-radius: 0.07in;
+    padding: 0.025in 0.04in;
+    font-size: 4.8pt;
+    background: rgba(255, 255, 255, 0.76) !important;
+    print-color-adjust: exact;
+  }
+
   .export-grid {
     height: 100%;
     grid-template-columns: 0.47fr repeat(3, minmax(0, 1fr));
-    grid-template-rows: 0.54in repeat(12, minmax(0.42in, 1fr));
+    grid-template-rows: 0.58in 0.32in repeat(6, minmax(0.78in, 1fr));
     gap: 0.055in;
   }
 
+  .export-group-row {
+    min-height: 0;
+    border-radius: 0.09in;
+    padding: 0.045in 0.06in;
+    background:
+      linear-gradient(135deg, #202828, #2e3b3c 56%, #0f766e) !important;
+    box-shadow:
+      0 0.055in 0.08in rgba(21, 32, 33, 0.16),
+      inset 0 0.01in 0 rgba(255, 255, 255, 0.22);
+    print-color-adjust: exact;
+  }
+
+  .export-group-row strong {
+    font-size: 7.2pt;
+  }
+
+  .export-group-row span {
+    font-size: 5.3pt;
+  }
+
   .export-program-cell,
-  .export-encounter-head {
+  .export-page-encounters {
     min-height: 0;
   }
 

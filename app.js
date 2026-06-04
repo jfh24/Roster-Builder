@@ -1,19 +1,21 @@
 const STORAGE_KEY = "modern-trial-roster-v1";
 
 const DEFAULT_ROLES = [
-  { id: "main-tank", name: "Main Tank", className: "Nightblade", short: "MT", color: "#b45309", player: "" },
-  { id: "off-tank", name: "Off Tank", className: "Sorcerer", short: "OT", color: "#6d5bd0", player: "" },
-  { id: "courage-healer", name: "Courage Healer", className: "Warden", short: "CH", color: "#0f766e", player: "" },
-  { id: "slayer-healer", name: "Slayer Healer", className: "Dragonknight", short: "SH", color: "#c24136", player: "" },
-  { id: "zenkosh", name: "ZenKosh", className: "Support", short: "ZK", color: "#8b5a2b", player: "" },
-  { id: "slayer-dps", name: "Slayer DPS", className: "Nightblade", short: "SD", color: "#b45309", player: "" },
-  { id: "force-dps", name: "Force DPS", className: "Arcanist", short: "FD", color: "#0f8a78", player: "" },
-  { id: "morag-dps", name: "Morag DPS", className: "Necromancer", short: "MD", color: "#5b6f7c", player: "" },
-  { id: "parse-nightblade", name: "Parse DPS", className: "Nightblade", short: "NB", color: "#b45309", player: "" },
-  { id: "parse-warden", name: "Parse DPS", className: "Warden", short: "WD", color: "#0f766e", player: "" },
-  { id: "parse-templar", name: "Parse DPS", className: "Templar", short: "TP", color: "#a16207", player: "" },
-  { id: "parse-open", name: "Parse DPS", className: "Open", short: "OP", color: "#4b5563", player: "" }
+  { id: "main-tank", name: "Main Tank", className: "Nightblade", short: "MT", color: "#b45309", player: "", tag: "Right Slayer" },
+  { id: "off-tank", name: "Off Tank", className: "Sorcerer", short: "OT", color: "#6d5bd0", player: "", tag: "Right Slayer" },
+  { id: "courage-healer", name: "Courage Healer", className: "Warden", short: "CH", color: "#0f766e", player: "", tag: "Right Slayer" },
+  { id: "slayer-healer", name: "Slayer Healer", className: "Dragonknight", short: "SH", color: "#c24136", player: "", tag: "Right Slayer" },
+  { id: "zenkosh", name: "ZenKosh", className: "Support", short: "ZK", color: "#8b5a2b", player: "", tag: "Right Slayer" },
+  { id: "slayer-dps", name: "Slayer DPS", className: "Nightblade", short: "SD", color: "#b45309", player: "", tag: "Right Slayer" },
+  { id: "force-dps", name: "Force DPS", className: "Arcanist", short: "FD", color: "#0f8a78", player: "", tag: "Left Slayer" },
+  { id: "morag-dps", name: "Morag DPS", className: "Necromancer", short: "MD", color: "#5b6f7c", player: "", tag: "Left Slayer" },
+  { id: "parse-nightblade", name: "Parse DPS", className: "Nightblade", short: "NB", color: "#b45309", player: "", tag: "Left Slayer" },
+  { id: "parse-warden", name: "Parse DPS", className: "Warden", short: "WD", color: "#0f766e", player: "", tag: "Left Slayer" },
+  { id: "parse-templar", name: "Parse DPS", className: "Templar", short: "TP", color: "#a16207", player: "", tag: "Left Slayer" },
+  { id: "parse-open", name: "Parse DPS", className: "Open", short: "OP", color: "#4b5563", player: "", tag: "Left Slayer" }
 ];
+
+const SLAYER_TAGS = ["Right Slayer", "Left Slayer"];
 
 const ROW_FIELDS = ["gear", "skills", "ultimates", "passives", "misc"];
 
@@ -116,35 +118,8 @@ function bindEvents() {
     saveState();
   });
 
-  elements.roleKey.addEventListener("input", (event) => {
-    const target = event.target;
-    const roleId = target.dataset.roleId;
-    const roleField = target.dataset.roleField;
-
-    if (!roleId || !roleField) {
-      return;
-    }
-
-    const role = getRoles().find((item) => item.id === roleId);
-    if (!role) {
-      return;
-    }
-
-    role[roleField] = target.value;
-    const editor = target.closest(".role-editor");
-    if (editor && roleField === "color") {
-      editor.style.setProperty("--role-color", target.value);
-    }
-    if (editor && roleField === "short") {
-      editor.querySelector(".class-token").textContent = target.value || "--";
-    }
-
-    saveState();
-    renderEncounterNav();
-    renderSheet();
-    renderExportSheet();
-    growAllTextareas();
-  });
+  elements.roleKey.addEventListener("input", handleRoleEditorInput);
+  elements.roleKey.addEventListener("change", handleRoleEditorInput);
 
   elements.roleKey.addEventListener("focusout", (event) => {
     if (!elements.roleKey.contains(event.relatedTarget)) {
@@ -229,6 +204,36 @@ function bindEvents() {
   });
 }
 
+function handleRoleEditorInput(event) {
+    const target = event.target;
+    const roleId = target.dataset.roleId;
+    const roleField = target.dataset.roleField;
+
+    if (!roleId || !roleField) {
+      return;
+    }
+
+    const role = getRoles().find((item) => item.id === roleId);
+    if (!role) {
+      return;
+    }
+
+    role[roleField] = target.value;
+    const editor = target.closest(".role-editor");
+    if (editor && roleField === "color") {
+      editor.style.setProperty("--role-color", target.value);
+    }
+    if (editor && roleField === "short") {
+      editor.querySelector(".class-token").textContent = target.value || "--";
+    }
+
+    saveState();
+    renderEncounterNav();
+    renderSheet();
+    renderExportSheet();
+    growAllTextareas();
+}
+
 function render() {
   syncControls();
   renderRoleKey();
@@ -266,6 +271,14 @@ function renderRoleKey() {
         <label>
           Player
           <input type="text" value="${escapeAttribute(role.player)}" data-role-id="${escapeAttribute(role.id)}" data-role-field="player" placeholder="@player">
+        </label>
+        <label>
+          Slayer tag
+          <select data-role-id="${escapeAttribute(role.id)}" data-role-field="tag">
+            ${SLAYER_TAGS.map((tag) => `
+              <option value="${escapeAttribute(tag)}"${getRoleTag(role) === tag ? " selected" : ""}>${escapeHtml(tag)}</option>
+            `).join("")}
+          </select>
         </label>
         <label>
           Role
@@ -340,57 +353,60 @@ function renderSheet() {
 
 function renderExportSheet() {
   const encounterPages = chunkEncounters(state.encounters, 3);
-  elements.exportSheet.innerHTML = encounterPages.map((encounters, index) => {
+  let pageNumber = 0;
+  elements.exportSheet.innerHTML = encounterPages.map((encounters) => {
     const paddedEncounters = [...encounters];
     while (paddedEncounters.length < 3) {
       paddedEncounters.push(null);
     }
 
-    return `
-      <section class="export-page" aria-label="PDF roster page ${index + 1}">
+    return SLAYER_TAGS.map((tag) => {
+      pageNumber += 1;
+      const roles = getRoles().filter((role) => getRoleTag(role) === tag);
+      return `
+      <section class="export-page" aria-label="PDF roster page ${pageNumber}">
         <div class="export-grid">
           <div class="export-program-cell">
             <strong>${escapeHtml(formatMetaValue("title"))}</strong>
             <span>${escapeHtml(formatDateTimeForExport())}</span>
           </div>
           ${paddedEncounters.map(renderExportEncounterHeader).join("")}
-          ${getRoles().map((role) => renderExportRoleBand(role, paddedEncounters)).join("")}
+          ${renderExportGroupRow(tag, roles.length)}
+          ${roles.map((role) => renderExportRoleBand(role, paddedEncounters)).join("")}
         </div>
       </section>
-    `;
+      `;
+    }).join("");
   }).join("");
 }
 
 function renderExportEncounterHeader(encounter) {
   return `
-    <div class="export-encounter-head">
-      <div class="export-encounter-pill">${escapeHtml(encounter?.name || "")}</div>
+    <div class="export-encounter-pill">${escapeHtml(encounter?.name || "")}</div>
+  `;
+}
+
+function renderExportGroupRow(tag, roleCount) {
+  return `
+    <div class="export-group-row">
+      <strong>${escapeHtml(tag)}</strong>
+      <span>${roleCount} roles</span>
     </div>
   `;
 }
 
 function renderExportRoleBand(role, encounters) {
-  const playerName = role.player || getExportPlayerForRole(role, encounters);
-
   return `
     <div class="export-role-cell" style="--role-color: ${role.color}">
       <span class="export-role-token">${escapeHtml(role.short)}</span>
       <div>
         <strong>${escapeHtml(role.name)}</strong>
         <span>${escapeHtml(role.className)}</span>
-        <em>${escapeHtml(playerName || "Player")}</em>
+        <em>${escapeHtml(role.player || "Player")}</em>
       </div>
     </div>
     ${encounters.map((encounter) => renderExportEncounterCell(encounter, role)).join("")}
   `;
-}
-
-function getExportPlayerForRole(role, encounters) {
-  const names = encounters
-    .filter(Boolean)
-    .map((encounter) => encounter.rows[role.id]?.player?.trim())
-    .filter(Boolean);
-  return [...new Set(names)].join(" / ");
 }
 
 function renderExportEncounterCell(encounter, role) {
@@ -467,6 +483,7 @@ function renderRoleRow(encounter, role) {
         <div>
           <strong>${escapeHtml(role.name)}</strong>
           <span>${escapeHtml(role.className)}</span>
+          <small>${escapeHtml(getRoleTag(role))}</small>
           <em>${escapeHtml(role.player || "Player")}</em>
         </div>
       </div>
@@ -572,7 +589,8 @@ function normalizeRoles(inputRoles, encounters = []) {
       className: normalizeRoleText(savedRole.className, defaultRole.className),
       short: normalizeRoleText(savedRole.short, defaultRole.short).slice(0, 4),
       color: normalizeRoleColor(savedRole.color, defaultRole.color),
-      player: normalizeRoleText(savedRole.player, migrateRolePlayer(defaultRole.id, encounters))
+      player: normalizeRoleText(savedRole.player, migrateRolePlayer(defaultRole.id, encounters)),
+      tag: normalizeSlayerTag(savedRole.tag, defaultRole.tag)
     };
   });
 }
@@ -583,6 +601,14 @@ function normalizeRoleText(value, fallback = "") {
 
 function normalizeRoleColor(value, fallback) {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+}
+
+function normalizeSlayerTag(value, fallback) {
+  return SLAYER_TAGS.includes(value) ? value : fallback;
+}
+
+function getRoleTag(role) {
+  return normalizeSlayerTag(role.tag, "Right Slayer");
 }
 
 function migrateRolePlayer(roleId, encounters) {

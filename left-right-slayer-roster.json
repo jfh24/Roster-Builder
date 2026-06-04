@@ -1,0 +1,214 @@
+{
+  "version": 2,
+  "meta": {
+    "title": "Left / Right Slayer Roster",
+    "trial": "",
+    "date": "2026-06-04",
+    "time": "",
+    "lead": "",
+    "notes": "Imported from text roster. Right Slayer and Left Slayer are assignable role tags, not encounters."
+  },
+  "roles": [
+    {
+      "id": "main-tank",
+      "name": "Main Tank",
+      "className": "Nightblade",
+      "short": "MT",
+      "color": "#b45309",
+      "player": "@st stephen",
+      "tag": "Right Slayer"
+    },
+    {
+      "id": "off-tank",
+      "name": "Off Tank",
+      "className": "Sorcerer",
+      "short": "OT",
+      "color": "#6d5bd0",
+      "player": "@Jerry Tan",
+      "tag": "Right Slayer"
+    },
+    {
+      "id": "courage-healer",
+      "name": "Courage Healer",
+      "className": "Warden",
+      "short": "H1",
+      "color": "#0f766e",
+      "player": "@juneskaa \\u272e",
+      "tag": "Right Slayer"
+    },
+    {
+      "id": "slayer-healer",
+      "name": "Slayer Healer",
+      "className": "Dragonknight",
+      "short": "H2",
+      "color": "#c24136",
+      "player": "@unknown-user",
+      "tag": "Right Slayer"
+    },
+    {
+      "id": "zenkosh",
+      "name": "ZenKosh",
+      "className": "Support",
+      "short": "ZK",
+      "color": "#8b5a2b",
+      "player": "@Aletheia",
+      "tag": "Right Slayer"
+    },
+    {
+      "id": "slayer-dps",
+      "name": "Slayer DPS",
+      "className": "Nightblade",
+      "short": "WM",
+      "color": "#b45309",
+      "player": "@Rivaka",
+      "tag": "Right Slayer"
+    },
+    {
+      "id": "force-dps",
+      "name": "Force DPS",
+      "className": "Arcanist",
+      "short": "DD",
+      "color": "#0f8a78",
+      "player": "@unknown-user",
+      "tag": "Left Slayer"
+    },
+    {
+      "id": "morag-dps",
+      "name": "Morag DPS",
+      "className": "Necromancer",
+      "short": "MD",
+      "color": "#5b6f7c",
+      "player": "@Sweating",
+      "tag": "Left Slayer"
+    },
+    {
+      "id": "parse-nightblade",
+      "name": "Parse DPS",
+      "className": "Nightblade",
+      "short": "NB",
+      "color": "#b45309",
+      "player": "@SavageAudacity",
+      "tag": "Left Slayer"
+    },
+    {
+      "id": "parse-warden",
+      "name": "Parse DPS",
+      "className": "Warden",
+      "short": "Den",
+      "color": "#0f766e",
+      "player": "@PrxvokedLegend",
+      "tag": "Left Slayer"
+    },
+    {
+      "id": "parse-templar",
+      "name": "Parse DPS",
+      "className": "Templar",
+      "short": "Plar",
+      "color": "#a16207",
+      "player": "@unknown-user",
+      "tag": "Left Slayer"
+    },
+    {
+      "id": "parse-open",
+      "name": "Parse DPS",
+      "className": "Open",
+      "short": "Parse",
+      "color": "#4b5563",
+      "player": "@unknown-user",
+      "tag": "Left Slayer"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "slayer-assignments",
+      "name": "Slayer Assignments",
+      "notes": "Use this column as the imported source plan. Add or rename encounter columns in the app as needed.",
+      "rows": {
+        "main-tank": {
+          "gear": "Pure NB w Cutthroat's Focus & Share the Spoils\nTrash [BS | TT | PW]\nBosses [BZ | StoneHulk | PW]",
+          "skills": "InnerRage; WardingGladiatorContingency",
+          "ultimates": "AggressiveHorn",
+          "passives": "",
+          "misc": "wall w/ Crusher, Major Cowardice"
+        },
+        "off-tank": {
+          "gear": "Pure Sorc w Calculated Defense\nTrash [BS | PA | LE]\nBosses [Crypt | PA | LE]",
+          "skills": "RegenerativeWard; LiquidLightning; ExhiliratingDrain; WardingGladiatorContingency; EchoingVigor",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        },
+        "courage-healer": {
+          "gear": "Pure Den w Bountiful Harvest & Tundra's Maw\nTrash [Blind | SPC | PP]\nBosses [Naz | SPC | PP]",
+          "skills": "BuddingSeeds; ExpansiveFrostCloak; WintersRevenge; MysticOrb; arcticblast; EleSus",
+          "ultimates": "AggressiveHorn",
+          "passives": "",
+          "misc": "Infused frost glyph backbar, charged front bar"
+        },
+        "slayer-healer": {
+          "gear": "Pure DK w Lead From the Front\nEverywhere [Spaulder | Master Resto | MA | Jorvuld's]",
+          "skills": "IgneousWeapon; FragmentedShield; EchoingVigor; MysticOrb; OverflowingAltar",
+          "ultimates": "StandardOfMight",
+          "passives": "",
+          "misc": "Infused weakening glyph back bar"
+        },
+        "zenkosh": {
+          "gear": "EH\nTrash [Alkosh]\nBosses [Z'ens | Alkosh]",
+          "skills": "Stagger",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        },
+        "slayer-dps": {
+          "gear": "Pure Blade w Nocturnal Inspiration & Above and beyond\nTrash [WM]\nBosses [WM | MK]",
+          "skills": "StatusOffBalanceKnife",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        },
+        "force-dps": {
+          "gear": "Pure Arc w Ink Scribe's Verve",
+          "skills": "FulminatingRune; Banner; EchoingVigor",
+          "ultimates": "",
+          "passives": "Reaving Blows CP",
+          "misc": "Heal on banner"
+        },
+        "morag-dps": {
+          "gear": "Pure Cro\nEverywhere Morag Tong",
+          "skills": "UnnervingBoneyard; Banner",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-nightblade": {
+          "gear": "",
+          "skills": "",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-warden": {
+          "gear": "",
+          "skills": "StatusOffBalanceKnife",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        },
+        "parse-templar": {
+          "gear": "Pure Plar w Bright Harbinger",
+          "skills": "",
+          "ultimates": "",
+          "passives": "",
+          "misc": "Iffy on this one dont think it is worth"
+        },
+        "parse-open": {
+          "gear": "",
+          "skills": "",
+          "ultimates": "",
+          "passives": "",
+          "misc": ""
+        }
+      }
+    }
+  ]
+}
