@@ -1,4 +1,5 @@
 const STORAGE_KEY = "modern-trial-roster-v1";
+const THEME_STORAGE_KEY = "modern-trial-roster-theme";
 
 const DEFAULT_ROLES = [
   { id: "main-tank", name: "Main Tank", className: "Nightblade", short: "MT", color: "#b45309", player: "", slayerTag: "Right Slayer" },
@@ -44,8 +45,12 @@ let state = loadState();
 persistState(state);
 let activeEncounterId = state.encounters[0]?.id;
 let saveTimer;
+let exportFitFrame;
 let draggedEncounterId = null;
 let draggedRoleId = null;
+let currentTheme = loadThemePreference();
+
+document.body.dataset.theme = currentTheme;
 
 if (new URLSearchParams(window.location.search).has("export-preview")) {
   document.body.classList.add("export-preview");
@@ -69,6 +74,8 @@ const elements = {
   exportButton: document.querySelector("#exportButton"),
   exportPngButton: document.querySelector("#exportPngButton"),
   printButton: document.querySelector("#printButton"),
+  themeToggleButton: document.querySelector("#themeToggleButton"),
+  themeToggleLabel: document.querySelector("#themeToggleLabel"),
   addEncounterButton: document.querySelector("#addEncounterButton"),
   duplicateEncounterButton: document.querySelector("#duplicateEncounterButton"),
   removeEncounterButton: document.querySelector("#removeEncounterButton"),
@@ -212,16 +219,20 @@ function bindEvents() {
   elements.importButton.addEventListener("click", () => elements.importFile.click());
   elements.importFile.addEventListener("change", importRosterJson);
   elements.printButton.addEventListener("click", printRoster);
+  elements.themeToggleButton.addEventListener("click", toggleTheme);
 
   window.addEventListener("beforeprint", () => {
     document.title = `${state.meta.title || "Roster"} PDF`;
     renderExportSheet();
+    fitExportTypography();
     growAllTextareas();
   });
 
   window.addEventListener("afterprint", () => {
     document.title = "Roster Builder";
   });
+
+  syncThemeToggle();
 }
 
 function handleRoleEditorInput(event) {
@@ -503,6 +514,7 @@ function renderExportSheet() {
       </section>
       `;
   }).join("");
+  scheduleExportTypographyFit();
 }
 
 function getExportPageModels() {
@@ -815,6 +827,44 @@ function persistState(roster) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(roster));
 }
 
+function loadThemePreference() {
+  try {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === "light" || savedTheme === "dark") {
+      return savedTheme;
+    }
+  } catch (error) {
+    console.warn("Could not load theme preference", error);
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function toggleTheme() {
+  setTheme(currentTheme === "dark" ? "light" : "dark");
+}
+
+function setTheme(theme) {
+  currentTheme = theme === "dark" ? "dark" : "light";
+  document.body.dataset.theme = currentTheme;
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+  } catch (error) {
+    console.warn("Could not save theme preference", error);
+  }
+  syncThemeToggle();
+}
+
+function syncThemeToggle() {
+  if (!elements.themeToggleButton || !elements.themeToggleLabel) {
+    return;
+  }
+  const isDark = currentTheme === "dark";
+  elements.themeToggleButton.setAttribute("aria-pressed", String(isDark));
+  elements.themeToggleLabel.textContent = isDark ? "Light" : "Dark";
+  elements.themeToggleButton.title = isDark ? "Switch to light mode" : "Switch to dark mode";
+}
+
 function saveState() {
   window.clearTimeout(saveTimer);
   elements.saveStatus.textContent = "Saving";
@@ -975,8 +1025,138 @@ async function importRosterJson() {
 
 function printRoster() {
   renderExportSheet();
+  fitExportTypography();
   growAllTextareas();
   window.print();
+}
+
+function scheduleExportTypographyFit() {
+  window.cancelAnimationFrame(exportFitFrame);
+  exportFitFrame = window.requestAnimationFrame(() => fitExportTypography());
+}
+
+function fitExportTypography() {
+  if (!elements.exportSheet?.children.length) {
+    return;
+  }
+
+  const stage = document.createElement("div");
+  stage.className = "png-export-stage export-fit-stage";
+  stage.setAttribute("aria-hidden", "true");
+  stage.innerHTML = elements.exportSheet.innerHTML;
+  document.body.append(stage);
+
+  try {
+    fitExportStageTypography(stage);
+    copyExportFitStyles(stage);
+  } finally {
+    stage.remove();
+  }
+}
+
+function fitExportStageTypography(root) {
+  root.querySelectorAll(".export-program-cell").forEach((cell) => {
+    fitCompositeFont(cell, 8, 18, (size) => {
+      const title = cell.querySelector("strong");
+      const date = cell.querySelector("span");
+      if (title) {
+        applyDomFont(title, size, 1.06);
+      }
+      if (date) {
+        applyDomFont(date, size * 0.72, 1.08);
+      }
+    });
+  });
+
+  root.querySelectorAll(".export-encounter-pill").forEach((pill) => {
+    fitDomText(pill, {
+      min: 7,
+      max: 18,
+      lineHeight: 1.08
+    });
+  });
+
+  root.querySelectorAll(".export-group-row").forEach((row) => {
+    fitCompositeFont(row, 8, 18, (size) => {
+      applyDomFont(row.querySelector("strong"), size, 1.1);
+      applyDomFont(row.querySelector("span"), size * 0.72, 1.1);
+    });
+  });
+
+  root.querySelectorAll(".export-info-cell:not(.export-info-cell-empty)").forEach((cell) => {
+    fitDomText(cell, {
+      min: cell.querySelector(".export-empty-note") ? 7 : 6,
+      max: cell.querySelector(".export-empty-note") ? 16 : 14.5,
+      lineHeight: 1.22
+    });
+  });
+}
+
+function fitCompositeFont(element, min, max, apply) {
+  let low = min;
+  let high = max;
+  let best = min;
+
+  for (let step = 0; step < 9; step += 1) {
+    const size = (low + high) / 2;
+    apply(size);
+
+    if (doesDomNodeFit(element)) {
+      best = size;
+      low = size;
+    } else {
+      high = size;
+    }
+  }
+
+  apply(best);
+}
+
+function fitDomText(element, options) {
+  fitCompositeFont(element, options.min, options.max, (size) => {
+    applyDomFont(element, size, options.lineHeight);
+  });
+}
+
+function applyDomFont(element, size, lineHeight = 1.1) {
+  if (!element) {
+    return;
+  }
+  element.style.fontSize = `${roundFontSize(size)}px`;
+  element.style.lineHeight = String(lineHeight);
+}
+
+function doesDomNodeFit(element) {
+  return element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1;
+}
+
+function copyExportFitStyles(stage) {
+  [
+    ".export-program-cell strong",
+    ".export-program-cell span",
+    ".export-encounter-pill",
+    ".export-group-row strong",
+    ".export-group-row span",
+    ".export-info-cell"
+  ].forEach((selector) => copyExportStyleList(stage, selector));
+}
+
+function copyExportStyleList(stage, selector) {
+  const fittedNodes = Array.from(stage.querySelectorAll(selector));
+  const exportNodes = Array.from(elements.exportSheet.querySelectorAll(selector));
+
+  fittedNodes.forEach((source, index) => {
+    const target = exportNodes[index];
+    if (!target) {
+      return;
+    }
+    target.style.fontSize = source.style.fontSize;
+    target.style.lineHeight = source.style.lineHeight;
+  });
+}
+
+function roundFontSize(value) {
+  return Math.round(value * 10) / 10;
 }
 
 function canvasToBlob(canvas) {
@@ -1003,6 +1183,7 @@ function renderExportPageCanvas(page) {
 }
 
 function drawExportPageCanvas(ctx, page) {
+  const theme = getExportTheme();
   const width = PNG_EXPORT_WIDTH;
   const height = PNG_EXPORT_HEIGHT;
   const padding = 32;
@@ -1022,170 +1203,273 @@ function drawExportPageCanvas(ctx, page) {
   const groupY = gridY + headerHeight + gap;
   const firstRoleY = groupY + groupHeight + gap;
 
-  drawExportPageBackground(ctx, width, height);
-  drawProgramCell(ctx, gridX, gridY, roleWidth, headerHeight);
+  drawExportPageBackground(ctx, width, height, theme);
+  drawProgramCell(ctx, gridX, gridY, roleWidth, headerHeight, theme);
 
   page.encounters.forEach((encounter, index) => {
     const x = gridX + roleWidth + gap + index * (encounterWidth + gap);
-    drawEncounterHeader(ctx, x, gridY, encounterWidth, headerHeight, encounter.name || `Encounter ${index + 1}`);
+    drawEncounterHeader(ctx, x, gridY, encounterWidth, headerHeight, encounter.name || `Encounter ${index + 1}`, theme);
   });
 
-  drawGroupRowCanvas(ctx, gridX, groupY, gridWidth, groupHeight, page.tag, page.roles.length);
+  drawGroupRowCanvas(ctx, gridX, groupY, gridWidth, groupHeight, page.tag, page.roles.length, theme);
 
   page.roles.forEach((role, rowIndex) => {
     const y = firstRoleY + rowIndex * (roleHeight + gap);
-    drawExportRoleCellCanvas(ctx, gridX, y, roleWidth, roleHeight, role);
+    drawExportRoleCellCanvas(ctx, gridX, y, roleWidth, roleHeight, role, theme);
 
     page.encounters.forEach((encounter, encounterIndex) => {
       const x = gridX + roleWidth + gap + encounterIndex * (encounterWidth + gap);
-      drawExportInfoCellCanvas(ctx, x, y, encounterWidth, roleHeight, encounter, role);
+      drawExportInfoCellCanvas(ctx, x, y, encounterWidth, roleHeight, encounter, role, theme);
     });
   });
 }
 
-function drawExportPageBackground(ctx, width, height) {
+function getExportTheme() {
+  const dark = currentTheme === "dark";
+  return {
+    dark,
+    pageBackground: dark ? "#101615" : "#f8fbfb",
+    pageStroke: dark ? "rgba(159, 177, 174, 0.22)" : "rgba(28, 42, 43, 0.18)",
+    pageTeal: dark ? "rgba(15, 118, 110, 0.22)" : "rgba(15, 118, 110, 0.13)",
+    pageCoral: dark ? "rgba(194, 65, 54, 0.15)" : "rgba(194, 65, 54, 0.12)",
+    programGradient: dark ? ["#0f1716", "#243330", "#0f766e"] : ["#202828", "#314142", "#0f766e"],
+    programText: "#ffffff",
+    programMuted: dark ? "#cce4e0" : "#d8e7e5",
+    pillTop: dark ? "#1b2523" : "#ffffff",
+    pillBottom: dark ? "#243330" : "#edf7f5",
+    pillText: dark ? "#eaf6f4" : "#123635",
+    pillStroke: dark ? "rgba(53, 211, 196, 0.36)" : "rgba(15, 118, 110, 0.32)",
+    groupMuted: dark ? "#cce4e0" : "#d6e4e3",
+    panelStroke: dark ? "rgba(159, 177, 174, 0.18)" : "rgba(21, 32, 33, 0.13)",
+    roleFill: dark ? "#17201f" : "#ffffff",
+    tokenTop: dark ? "#202c2a" : "#ffffff",
+    roleText: dark ? "#f2f7f6" : "#111111",
+    roleMuted: dark ? "#aebdb9" : "#4d5a5c",
+    infoTop: dark ? "rgba(27, 37, 35, 0.98)" : "rgba(255, 255, 255, 0.98)",
+    infoBottom: dark ? "rgba(18, 26, 25, 0.96)" : "rgba(248, 251, 251, 0.96)",
+    infoLabel: dark ? "#35d3c4" : "#08746d",
+    infoText: dark ? "#d9e6e3" : "#243132",
+    emptyText: dark ? "#91a7a3" : "#7c8a8d",
+    panelShadow: dark ? "rgba(0, 0, 0, 0.24)" : "rgba(31, 37, 37, 0.1)",
+    strongShadow: dark ? "rgba(0, 0, 0, 0.34)" : "rgba(21, 32, 33, 0.16)"
+  };
+}
+
+function drawExportPageBackground(ctx, width, height, theme) {
   drawRoundedPath(ctx, 1, 1, width - 2, height - 2, 36);
   ctx.save();
   ctx.clip();
-  ctx.fillStyle = "#f8fbfb";
+  ctx.fillStyle = theme.pageBackground;
   ctx.fillRect(0, 0, width, height);
 
   const teal = ctx.createLinearGradient(0, 0, width * 0.55, height * 0.52);
-  teal.addColorStop(0, "rgba(15, 118, 110, 0.13)");
+  teal.addColorStop(0, theme.pageTeal);
   teal.addColorStop(1, "rgba(15, 118, 110, 0)");
   ctx.fillStyle = teal;
   ctx.fillRect(0, 0, width, height);
 
   const coral = ctx.createLinearGradient(width, height, width * 0.55, height * 0.48);
-  coral.addColorStop(0, "rgba(194, 65, 54, 0.12)");
+  coral.addColorStop(0, theme.pageCoral);
   coral.addColorStop(1, "rgba(194, 65, 54, 0)");
   ctx.fillStyle = coral;
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
 
-  ctx.strokeStyle = "rgba(28, 42, 43, 0.18)";
+  ctx.strokeStyle = theme.pageStroke;
   ctx.lineWidth = 2;
   ctx.stroke();
 }
 
-function drawProgramCell(ctx, x, y, width, height) {
+function drawProgramCell(ctx, x, y, width, height, theme) {
   const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
-  gradient.addColorStop(0, "#202828");
-  gradient.addColorStop(0.62, "#314142");
-  gradient.addColorStop(1, "#0f766e");
-  drawPanel(ctx, x, y, width, height, 28, gradient, "rgba(21, 32, 33, 0.2)");
+  gradient.addColorStop(0, theme.programGradient[0]);
+  gradient.addColorStop(0.62, theme.programGradient[1]);
+  gradient.addColorStop(1, theme.programGradient[2]);
+  drawPanel(ctx, x, y, width, height, 28, gradient, theme.strongShadow);
 
-  ctx.fillStyle = "#ffffff";
-  setCanvasFont(ctx, 22, 850);
-  drawCenteredLines(ctx, wrapCanvasText(ctx, formatMetaValue("title"), width - 24, 2), x, y + 24, width, 28);
-  ctx.fillStyle = "#d8e7e5";
-  setCanvasFont(ctx, 15, 780);
-  drawCenteredLines(ctx, [formatDateTimeForExport()], x, y + height - 38, width, 20);
+  ctx.fillStyle = theme.programText;
+  drawFittedCanvasText(ctx, formatMetaValue("title"), {
+    x: x + 14,
+    y: y + 20,
+    width: width - 28,
+    height: height - 58,
+    minSize: 13,
+    maxSize: 30,
+    weight: 850,
+    align: "center",
+    maxLines: 2,
+    lineHeight: 1.08,
+    color: theme.programText
+  });
+  ctx.fillStyle = theme.programMuted;
+  drawFittedCanvasText(ctx, formatDateTimeForExport(), {
+    x: x + 14,
+    y: y + height - 40,
+    width: width - 28,
+    height: 24,
+    minSize: 9,
+    maxSize: 18,
+    weight: 780,
+    align: "center",
+    maxLines: 1,
+    lineHeight: 1.08,
+    color: theme.programMuted
+  });
 }
 
-function drawEncounterHeader(ctx, x, y, width, height, label) {
+function drawEncounterHeader(ctx, x, y, width, height, label, theme) {
   const pillWidth = Math.min(width * 0.92, 460);
   const pillHeight = 54;
   const pillX = x + (width - pillWidth) / 2;
   const pillY = y + (height - pillHeight) / 2;
   const gradient = ctx.createLinearGradient(pillX, pillY, pillX, pillY + pillHeight);
-  gradient.addColorStop(0, "#ffffff");
-  gradient.addColorStop(1, "#edf7f5");
-  drawPanel(ctx, pillX, pillY, pillWidth, pillHeight, pillHeight / 2, gradient, "rgba(15, 118, 110, 0.13)", {
-    stroke: "rgba(15, 118, 110, 0.32)",
+  gradient.addColorStop(0, theme.pillTop);
+  gradient.addColorStop(1, theme.pillBottom);
+  drawPanel(ctx, pillX, pillY, pillWidth, pillHeight, pillHeight / 2, gradient, theme.panelShadow, {
+    stroke: theme.pillStroke,
     shadowBlur: 18,
     shadowOffsetY: 8
   });
 
-  ctx.fillStyle = "#123635";
-  setCanvasFont(ctx, 16, 850);
-  drawCenteredLines(ctx, wrapCanvasText(ctx, label, pillWidth - 32, 2), pillX, pillY + 15, pillWidth, 18);
+  ctx.fillStyle = theme.pillText;
+  drawFittedCanvasText(ctx, label, {
+    x: pillX + 16,
+    y: pillY + 8,
+    width: pillWidth - 32,
+    height: pillHeight - 16,
+    minSize: 9,
+    maxSize: 22,
+    weight: 850,
+    align: "center",
+    maxLines: 2,
+    lineHeight: 1.08,
+    color: theme.pillText
+  });
 }
 
-function drawGroupRowCanvas(ctx, x, y, width, height, tag, roleCount) {
+function drawGroupRowCanvas(ctx, x, y, width, height, tag, roleCount, theme) {
   const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
-  gradient.addColorStop(0, "#202828");
-  gradient.addColorStop(0.58, "#2e3b3c");
-  gradient.addColorStop(1, "#0f766e");
-  drawPanel(ctx, x, y, width, height, 18, gradient, "rgba(21, 32, 33, 0.16)", {
+  gradient.addColorStop(0, theme.programGradient[0]);
+  gradient.addColorStop(0.58, theme.programGradient[1]);
+  gradient.addColorStop(1, theme.programGradient[2]);
+  drawPanel(ctx, x, y, width, height, 18, gradient, theme.strongShadow, {
     shadowBlur: 20,
     shadowOffsetY: 9
   });
 
   ctx.fillStyle = "#ffffff";
-  setCanvasFont(ctx, 20, 850);
-  ctx.textAlign = "left";
-  ctx.fillText(tag, x + 24, y + 20);
+  drawFittedCanvasText(ctx, tag, {
+    x: x + 24,
+    y: y + 14,
+    width: width * 0.55,
+    height: height - 24,
+    minSize: 10,
+    maxSize: 24,
+    weight: 850,
+    align: "left",
+    maxLines: 1,
+    lineHeight: 1.1,
+    color: theme.programText
+  });
 
-  ctx.fillStyle = "#d6e4e3";
-  setCanvasFont(ctx, 13, 850);
-  ctx.textAlign = "right";
-  ctx.fillText(`${roleCount} roles`.toUpperCase(), x + width - 24, y + 23);
-  ctx.textAlign = "left";
+  ctx.fillStyle = theme.groupMuted;
+  drawFittedCanvasText(ctx, `${roleCount} roles`.toUpperCase(), {
+    x: x + width * 0.58,
+    y: y + 17,
+    width: width * 0.42 - 24,
+    height: height - 24,
+    minSize: 8,
+    maxSize: 16,
+    weight: 850,
+    align: "right",
+    maxLines: 1,
+    lineHeight: 1.1,
+    color: theme.groupMuted
+  });
 }
 
-function drawExportRoleCellCanvas(ctx, x, y, width, height, role) {
+function drawExportRoleCellCanvas(ctx, x, y, width, height, role, theme) {
   const roleColor = normalizeRoleColor(role.color, "#4b5563");
   const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
-  gradient.addColorStop(0, mixHex(roleColor, "#ffffff", 0.18));
-  gradient.addColorStop(1, "#ffffff");
-  drawPanel(ctx, x, y, width, height, 20, gradient, "rgba(31, 37, 37, 0.1)", {
-    stroke: "rgba(21, 32, 33, 0.13)",
+  gradient.addColorStop(0, mixHex(roleColor, theme.roleFill, 0.24));
+  gradient.addColorStop(1, theme.roleFill);
+  drawPanel(ctx, x, y, width, height, 20, gradient, theme.panelShadow, {
+    stroke: theme.panelStroke,
     shadowBlur: 17,
     shadowOffsetY: 9
   });
 
   const tokenSize = Math.min(34, Math.max(25, width * 0.22));
   const tokenX = x + 12;
-  const tokenY = y + Math.max(12, (height - tokenSize) / 2 - 22);
+  const textX = tokenX + tokenSize + 10;
+  const textWidth = Math.max(20, x + width - textX - 10);
+  const nameSize = 18;
+  const classSize = 13.5;
+  const playerSize = 15.5;
+  const nameLineHeight = 20;
+  const classLineHeight = 17;
+  const playerLineHeight = 18;
+
+  setCanvasFont(ctx, nameSize, 850);
+  const nameLines = wrapCanvasText(ctx, role.name || "Role", textWidth, 2, { truncate: true });
+  setCanvasFont(ctx, classSize, 700);
+  const classLines = wrapCanvasText(ctx, role.className || "", textWidth, 2, { truncate: true });
+  setCanvasFont(ctx, playerSize, 900);
+  const playerLines = wrapCanvasText(ctx, role.player || "Player", textWidth, 2, { truncate: true });
+  const textBlockHeight =
+    nameLines.length * nameLineHeight +
+    classLines.length * classLineHeight +
+    Math.min(playerLines.length, 2) * playerLineHeight;
+  const contentHeight = Math.max(tokenSize, textBlockHeight);
+  const contentY = y + Math.max(0, (height - contentHeight) / 2);
+  const tokenY = contentY + (contentHeight - tokenSize) / 2;
   const tokenGradient = ctx.createLinearGradient(tokenX, tokenY, tokenX, tokenY + tokenSize);
-  tokenGradient.addColorStop(0, "#ffffff");
-  tokenGradient.addColorStop(1, mixHex(roleColor, "#ffffff", 0.13));
-  drawPanel(ctx, tokenX, tokenY, tokenSize, tokenSize, 10, tokenGradient, "rgba(31, 37, 37, 0.08)", {
-    stroke: mixHex(roleColor, "#ffffff", 0.62),
+  tokenGradient.addColorStop(0, theme.tokenTop);
+  tokenGradient.addColorStop(1, mixHex(roleColor, theme.tokenTop, 0.2));
+  drawPanel(ctx, tokenX, tokenY, tokenSize, tokenSize, 10, tokenGradient, theme.panelShadow, {
+    stroke: mixHex(roleColor, theme.tokenTop, 0.62),
     shadowBlur: 10,
     shadowOffsetY: 5
   });
 
-  ctx.fillStyle = mixHex(roleColor, "#111111", 0.76);
-  setCanvasFont(ctx, Math.max(10, tokenSize * 0.38), 900);
-  drawCenteredLines(ctx, [role.short || "--"], tokenX, tokenY + tokenSize * 0.32, tokenSize, tokenSize * 0.36);
+  ctx.fillStyle = mixHex(roleColor, theme.roleText, 0.76);
+  setCanvasFont(ctx, Math.max(11, tokenSize * 0.42), 900);
+  ctx.textAlign = "center";
+  ctx.fillText(role.short || "--", tokenX + tokenSize / 2, tokenY + tokenSize * 0.32);
+  ctx.textAlign = "left";
 
-  const textX = tokenX + tokenSize + 10;
-  const textWidth = Math.max(20, x + width - textX - 10);
-  let textY = y + 18;
+  let textY = contentY + Math.max(0, (contentHeight - textBlockHeight) / 2);
 
-  ctx.fillStyle = "#111111";
-  setCanvasFont(ctx, 16, 850);
-  const nameLines = wrapCanvasText(ctx, role.name || "Role", textWidth, 2);
+  ctx.fillStyle = theme.roleText;
+  setCanvasFont(ctx, nameSize, 850);
   nameLines.forEach((line) => {
     ctx.fillText(line, textX, textY);
-    textY += 18;
+    textY += nameLineHeight;
   });
 
-  ctx.fillStyle = "#4d5a5c";
-  setCanvasFont(ctx, 12, 700);
-  wrapCanvasText(ctx, role.className || "", textWidth, 2).forEach((line) => {
+  ctx.fillStyle = theme.roleMuted;
+  setCanvasFont(ctx, classSize, 700);
+  classLines.forEach((line) => {
     ctx.fillText(line, textX, textY + 2);
-    textY += 15;
+    textY += classLineHeight;
   });
 
-  ctx.fillStyle = mixHex(roleColor, "#111111", 0.78);
-  setCanvasFont(ctx, 14, 900);
-  wrapCanvasText(ctx, role.player || "Player", textWidth, 2).forEach((line) => {
+  ctx.fillStyle = mixHex(roleColor, theme.roleText, 0.78);
+  setCanvasFont(ctx, playerSize, 900);
+  playerLines.forEach((line) => {
     if (textY < y + height - 18) {
       ctx.fillText(line, textX, textY + 5);
-      textY += 16;
+      textY += playerLineHeight;
     }
   });
 }
 
-function drawExportInfoCellCanvas(ctx, x, y, width, height, encounter, role) {
+function drawExportInfoCellCanvas(ctx, x, y, width, height, encounter, role, theme) {
   const gradient = ctx.createLinearGradient(x, y, x, y + height);
-  gradient.addColorStop(0, "rgba(255, 255, 255, 0.98)");
-  gradient.addColorStop(1, "rgba(248, 251, 251, 0.96)");
-  drawPanel(ctx, x, y, width, height, 20, gradient, "rgba(31, 37, 37, 0.1)", {
-    stroke: "rgba(21, 32, 33, 0.13)",
+  gradient.addColorStop(0, theme.infoTop);
+  gradient.addColorStop(1, theme.infoBottom);
+  drawPanel(ctx, x, y, width, height, 20, gradient, theme.panelShadow, {
+    stroke: theme.panelStroke,
     shadowBlur: 17,
     shadowOffsetY: 9
   });
@@ -1199,34 +1483,28 @@ function drawExportInfoCellCanvas(ctx, x, y, width, height, encounter, role) {
     { label: "Misc", value: row.misc }
   ].filter((line) => String(line.value || "").trim());
 
-  const inset = 16;
+  const inset = 20;
   const maxWidth = width - inset * 2;
-  let cursorY = y + 14;
-  const maxY = y + height - 18;
-  setCanvasFont(ctx, 14, 700);
 
   if (!lines.length) {
-    ctx.fillStyle = "#7c8a8d";
-    ctx.fillText("Encounter details", x + inset, cursorY);
+    drawFittedCanvasText(ctx, "Encounter details", {
+      x: x + inset,
+      y: y + 18,
+      width: maxWidth,
+      height: height - 36,
+      minSize: 9,
+      maxSize: 18,
+      weight: 760,
+      align: "left",
+      maxLines: 1,
+      lineHeight: 1.18,
+      color: theme.emptyText
+    });
     return;
   }
 
-  for (const line of lines) {
-    if (cursorY > maxY) {
-      break;
-    }
-    const wrapped = wrapCanvasText(ctx, `${line.label}: ${line.value}`, maxWidth, 4);
-    for (const wrappedLine of wrapped) {
-      if (cursorY > maxY) {
-        ctx.fillText("...", x + inset, maxY);
-        return;
-      }
-      ctx.fillStyle = "#1e2c2d";
-      ctx.fillText(wrappedLine, x + inset, cursorY);
-      cursorY += 18;
-    }
-    cursorY += 3;
-  }
+  const layout = fitInfoCanvasLayout(ctx, lines, maxWidth, height - 36, theme);
+  drawInfoCanvasLayout(ctx, layout, x + inset, y + 18);
 }
 
 function drawPanel(ctx, x, y, width, height, radius, fill, shadowColor, options = {}) {
@@ -1262,45 +1540,236 @@ function drawRoundedPath(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
+function drawFittedCanvasText(ctx, text, options) {
+  const layout = fitCanvasTextBlock(ctx, text, options);
+  setCanvasFont(ctx, layout.size, options.weight, options.style);
+  ctx.fillStyle = options.color || ctx.fillStyle;
+  ctx.textAlign = options.align || "left";
+
+  layout.lines.forEach((line, index) => {
+    const y = options.y + index * layout.lineHeight;
+    const x = options.align === "center"
+      ? options.x + options.width / 2
+      : options.align === "right"
+        ? options.x + options.width
+        : options.x;
+    ctx.fillText(line, x, y);
+  });
+
+  ctx.textAlign = "left";
+}
+
+function fitCanvasTextBlock(ctx, text, options) {
+  let low = options.minSize;
+  let high = options.maxSize;
+  let best = createCanvasTextLayout(ctx, text, options, low, true);
+
+  for (let step = 0; step < 9; step += 1) {
+    const size = (low + high) / 2;
+    const layout = createCanvasTextLayout(ctx, text, options, size, false);
+
+    if (layout.fits) {
+      best = layout;
+      low = size;
+    } else {
+      high = size;
+    }
+  }
+
+  return best;
+}
+
+function createCanvasTextLayout(ctx, text, options, size, truncate) {
+  setCanvasFont(ctx, size, options.weight, options.style);
+  const lineHeight = size * (options.lineHeight || 1.1);
+  const lines = wrapCanvasText(ctx, text, options.width, options.maxLines || Infinity, { truncate });
+  const measuredWidth = lines.reduce((max, line) => Math.max(max, ctx.measureText(line).width), 0);
+  const measuredHeight = lines.length * lineHeight;
+
+  return {
+    size,
+    lines,
+    lineHeight,
+    fits: measuredWidth <= options.width + 0.5 && measuredHeight <= options.height + 0.5
+  };
+}
+
+function fitInfoCanvasLayout(ctx, lines, width, height, theme) {
+  let low = 8;
+  let high = 18;
+  let best = createInfoCanvasLayout(ctx, lines, width, low, true, height, theme);
+
+  for (let step = 0; step < 9; step += 1) {
+    const size = (low + high) / 2;
+    const layout = createInfoCanvasLayout(ctx, lines, width, size, false, height, theme);
+
+    if (layout.fits) {
+      best = layout;
+      low = size;
+    } else {
+      high = size;
+    }
+  }
+
+  if (!best.fits) {
+    best = createInfoCanvasLayout(ctx, lines, width, low, true, height, theme);
+  }
+
+  return best;
+}
+
+function createInfoCanvasLayout(ctx, lines, width, size, truncate = false, maxHeight = Infinity, theme = getExportTheme()) {
+  const labelSize = size * 1.16;
+  const lineHeight = Math.max(labelSize, size) * 1.22;
+  const gap = size * 0.3;
+  const output = [];
+  let y = 0;
+  let fits = true;
+
+  for (const line of lines) {
+    const label = `${line.label}: `;
+    const value = String(line.value || "");
+    setCanvasFont(ctx, labelSize, 880);
+    const labelWidth = Math.min(ctx.measureText(label).width, width);
+    setCanvasFont(ctx, size, 700);
+    const firstLineWidth = Math.max(0, width - labelWidth);
+    const firstLine = takeCanvasWordsForWidth(ctx, value, firstLineWidth);
+    const remainingValue = firstLine.remaining;
+    const valueLines = remainingValue
+      ? wrapCanvasText(ctx, remainingValue, width, Infinity, { truncate: false })
+      : [];
+
+    const fieldLines = [
+      {
+        segments: [
+          { text: label, x: 0, size: labelSize, weight: 880, color: theme.infoLabel },
+          ...(firstLine.text ? [{ text: firstLine.text, x: labelWidth, size, weight: 700, color: theme.infoText }] : [])
+        ]
+      },
+      ...valueLines.map((text) => ({
+        segments: [{ text, x: 0, size, weight: 700, color: theme.infoText }]
+      }))
+    ];
+
+    for (const fieldLine of fieldLines) {
+      if (y + lineHeight > maxHeight) {
+        fits = false;
+        if (truncate) {
+          const lastY = Math.max(0, maxHeight - lineHeight);
+          output.push({
+            y: lastY,
+            lineHeight,
+            segments: [{ text: "...", x: 0, size, weight: 700, color: theme.infoText }]
+          });
+          return { lines: output, height: maxHeight, fits: true };
+        }
+        return { lines: output, height: y, fits };
+      }
+      output.push({ ...fieldLine, y, lineHeight });
+      y += lineHeight;
+    }
+    y += gap;
+  }
+
+  return {
+    lines: output,
+    height: y,
+    fits
+  };
+}
+
+function drawInfoCanvasLayout(ctx, layout, x, y) {
+  layout.lines.forEach((line) => {
+    line.segments.forEach((segment) => {
+      ctx.fillStyle = segment.color;
+      setCanvasFont(ctx, segment.size, segment.weight);
+      ctx.fillText(segment.text, x + segment.x, y + line.y);
+    });
+  });
+}
+
+function takeCanvasWordsForWidth(ctx, value, maxWidth) {
+  const words = String(value || "").split(/\s+/).filter(Boolean);
+  if (!words.length || maxWidth <= 0) {
+    return { text: "", remaining: words.join(" ") };
+  }
+
+  let text = "";
+  let index = 0;
+
+  while (index < words.length) {
+    const test = text ? `${text} ${words[index]}` : words[index];
+    if (ctx.measureText(test).width <= maxWidth || !text) {
+      if (ctx.measureText(test).width > maxWidth && !text) {
+        break;
+      }
+      text = test;
+      index += 1;
+      continue;
+    }
+    break;
+  }
+
+  return {
+    text,
+    remaining: words.slice(index).join(" ")
+  };
+}
+
 function setCanvasFont(ctx, size, weight = 700, style = "normal") {
   ctx.font = `${style} ${weight} ${size}px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
 }
 
-function drawCenteredLines(ctx, lines, x, y, width, lineHeight) {
-  ctx.textAlign = "center";
-  lines.forEach((line, index) => {
-    ctx.fillText(line, x + width / 2, y + index * lineHeight);
-  });
-  ctx.textAlign = "left";
-}
-
-function wrapCanvasText(ctx, value, maxWidth, maxLines = Infinity) {
+function wrapCanvasText(ctx, value, maxWidth, maxLines = Infinity, options = {}) {
   const words = String(value || "").split(/\s+/).filter(Boolean);
   const lines = [];
   let current = "";
+  let didTruncate = false;
+
+  const pushLine = (line) => {
+    if (lines.length >= maxLines) {
+      didTruncate = true;
+      return false;
+    }
+    lines.push(line);
+    return true;
+  };
 
   for (const word of words) {
+    if (!current && ctx.measureText(word).width > maxWidth) {
+      const chunks = splitLongCanvasWord(ctx, word, maxWidth);
+      for (const chunk of chunks) {
+        if (current && !pushLine(current)) {
+          break;
+        }
+        current = chunk;
+      }
+      continue;
+    }
+
     const test = current ? `${current} ${word}` : word;
     if (ctx.measureText(test).width <= maxWidth || !current) {
       current = test;
       continue;
     }
-    lines.push(current);
-    current = word;
-    if (lines.length >= maxLines) {
+    if (!pushLine(current)) {
+      current = "";
       break;
     }
+    current = word;
   }
 
   if (current && lines.length < maxLines) {
     lines.push(current);
+  } else if (current) {
+    didTruncate = true;
   }
 
   if (!lines.length) {
     return [""];
   }
 
-  if (lines.length === maxLines && words.length) {
+  if (options.truncate && didTruncate) {
     const lastIndex = lines.length - 1;
     while (ctx.measureText(`${lines[lastIndex]}...`).width > maxWidth && lines[lastIndex].length > 1) {
       lines[lastIndex] = lines[lastIndex].slice(0, -1).trim();
@@ -1311,6 +1780,27 @@ function wrapCanvasText(ctx, value, maxWidth, maxLines = Infinity) {
   }
 
   return lines;
+}
+
+function splitLongCanvasWord(ctx, word, maxWidth) {
+  const chunks = [];
+  let current = "";
+
+  for (const character of word) {
+    const test = `${current}${character}`;
+    if (ctx.measureText(test).width <= maxWidth || !current) {
+      current = test;
+      continue;
+    }
+    chunks.push(current);
+    current = character;
+  }
+
+  if (current) {
+    chunks.push(current);
+  }
+
+  return chunks;
 }
 
 function mixHex(hex, otherHex, amount) {
