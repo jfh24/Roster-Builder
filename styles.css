@@ -141,6 +141,11 @@ button {
   grid-template-columns: 1fr 1fr 1fr;
 }
 
+.role-actions {
+  grid-template-columns: 1fr;
+  margin-bottom: 10px;
+}
+
 .button {
   min-height: 38px;
   border: 1px solid transparent;
@@ -283,6 +288,24 @@ textarea:focus-visible {
   margin-top: 12px;
 }
 
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 820;
+  text-transform: uppercase;
+}
+
+.toggle-row input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--teal);
+}
+
 input,
 textarea {
   width: 100%;
@@ -385,7 +408,7 @@ textarea {
 
 .role-editor-top {
   display: grid;
-  grid-template-columns: 28px 34px minmax(0, 1fr);
+  grid-template-columns: 28px 34px minmax(0, 1fr) 28px;
   align-items: center;
   gap: 8px;
 }
@@ -415,6 +438,28 @@ textarea {
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+.role-delete-button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(194, 65, 54, 0.3);
+  border-radius: 8px;
+  color: #8f241b;
+  background: #fff7f5;
+  box-shadow:
+    0 4px 9px rgba(31, 37, 37, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.role-delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .role-editor label {
@@ -789,6 +834,15 @@ body[data-theme="dark"] .button.danger {
   color: #ffb4ab;
   background: #33201e;
   border-color: rgba(255, 180, 171, 0.34);
+}
+
+body[data-theme="dark"] .role-delete-button {
+  color: #ffb4ab;
+  background: #33201e;
+  border-color: rgba(255, 180, 171, 0.34);
+  box-shadow:
+    0 4px 9px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 body[data-theme="dark"] .side-panel {
@@ -1402,8 +1456,13 @@ body[data-theme="dark"] .png-export-frame {
 .png-export-frame .export-grid {
   height: 100%;
   grid-template-columns: 0.47fr repeat(var(--export-encounter-count, 5), minmax(0, 1fr));
-  grid-template-rows: 0.58in 0.32in repeat(6, minmax(0.78in, 1fr));
+  grid-template-rows: 0.58in 0.32in repeat(var(--export-role-count, 6), minmax(0, 1fr));
   gap: 0.055in;
+}
+
+.png-export-stage .export-grid.is-flat,
+.png-export-frame .export-grid.is-flat {
+  grid-template-rows: 0.58in repeat(var(--export-role-count, 6), minmax(0, 1fr));
 }
 
 .png-export-stage .export-group-row,
@@ -1693,8 +1752,12 @@ body[data-theme="dark"] .png-export-frame {
   .export-grid {
     height: 100%;
     grid-template-columns: 0.47fr repeat(var(--export-encounter-count, 5), minmax(0, 1fr));
-    grid-template-rows: 0.58in 0.32in repeat(6, minmax(0.78in, 1fr));
+    grid-template-rows: 0.58in 0.32in repeat(var(--export-role-count, 6), minmax(0, 1fr));
     gap: 0.055in;
+  }
+
+  .export-grid.is-flat {
+    grid-template-rows: 0.58in repeat(var(--export-role-count, 6), minmax(0, 1fr));
   }
 
   .export-group-row {

@@ -18,6 +18,25 @@ const DEFAULT_ROLES = [
 
 const SLAYER_TAGS = ["Right Slayer", "Left Slayer"];
 
+const DEFAULT_SETTINGS = {
+  slayerGroupsEnabled: true
+};
+
+const ROLE_COLOR_PALETTE = [
+  "#b45309",
+  "#6d5bd0",
+  "#0f766e",
+  "#c24136",
+  "#8b5a2b",
+  "#0f8a78",
+  "#5b6f7c",
+  "#a16207",
+  "#2563eb",
+  "#be185d",
+  "#64748b",
+  "#7c3aed"
+];
+
 const ROW_FIELDS = ["gear", "skills", "ultimates", "passives", "misc"];
 
 const FIELD_LABELS = {
@@ -65,6 +84,7 @@ const elements = {
   rosterNotes: document.querySelector("#rosterNotes"),
   saveStatus: document.querySelector("#saveStatus"),
   encounterCount: document.querySelector("#encounterCount"),
+  roleCount: document.querySelector("#roleCount"),
   encounterNav: document.querySelector("#encounterNav"),
   roleKey: document.querySelector("#roleKey"),
   rosterSheet: document.querySelector("#rosterSheet"),
@@ -77,6 +97,8 @@ const elements = {
   themeToggleButton: document.querySelector("#themeToggleButton"),
   themeToggleLabel: document.querySelector("#themeToggleLabel"),
   addEncounterButton: document.querySelector("#addEncounterButton"),
+  addRoleButton: document.querySelector("#addRoleButton"),
+  slayerGroupsToggle: document.querySelector("#slayerGroupsToggle"),
   duplicateEncounterButton: document.querySelector("#duplicateEncounterButton"),
   removeEncounterButton: document.querySelector("#removeEncounterButton"),
   importFile: document.querySelector("#importFile")
@@ -138,6 +160,7 @@ function bindEvents() {
 
   elements.roleKey.addEventListener("input", handleRoleEditorInput);
   elements.roleKey.addEventListener("change", handleRoleEditorInput);
+  elements.roleKey.addEventListener("click", handleRoleKeyClick);
   elements.roleKey.addEventListener("dragstart", handleRoleDragStart);
   elements.roleKey.addEventListener("dragover", handleRoleDragOver);
   elements.roleKey.addEventListener("drop", handleRoleDrop);
@@ -166,7 +189,7 @@ function bindEvents() {
   elements.encounterNav.addEventListener("dragend", handleEncounterDragEnd);
 
   elements.addEncounterButton.addEventListener("click", () => {
-    const encounter = createEncounter(`Encounter ${state.encounters.length + 1}`);
+    const encounter = createEncounter(`Encounter ${state.encounters.length + 1}`, getRoles());
     state.encounters.push(encounter);
     activeEncounterId = encounter.id;
     saveState();
@@ -180,7 +203,7 @@ function bindEvents() {
       ...structuredCloneSafe(source),
       id: createId(),
       name: `${source.name || "Encounter"} Copy`
-    });
+    }, getRoles());
     state.encounters.push(duplicate);
     activeEncounterId = duplicate.id;
     saveState();
@@ -220,6 +243,12 @@ function bindEvents() {
   elements.importFile.addEventListener("change", importRosterJson);
   elements.printButton.addEventListener("click", printRoster);
   elements.themeToggleButton.addEventListener("click", toggleTheme);
+  elements.addRoleButton.addEventListener("click", addRole);
+  elements.slayerGroupsToggle.addEventListener("change", () => {
+    state.settings.slayerGroupsEnabled = elements.slayerGroupsToggle.checked;
+    saveState();
+    render();
+  });
 
   window.addEventListener("beforeprint", () => {
     document.title = `${state.meta.title || "Roster"} PDF`;
@@ -233,6 +262,86 @@ function bindEvents() {
   });
 
   syncThemeToggle();
+}
+
+function handleRoleKeyClick(event) {
+  const button = event.target.closest("[data-role-delete-id]");
+  if (!button) {
+    return;
+  }
+
+  removeRole(button.dataset.roleDeleteId);
+}
+
+function addRole() {
+  const roles = getRoles();
+  const role = createRole(roles.length);
+  roles.push(role);
+  ensureRoleRows(role.id);
+  saveState();
+  render();
+  setStatus("Role added");
+  focusRoleEditor(role.id);
+}
+
+function removeRole(roleId) {
+  const roles = getRoles();
+  if (roles.length <= 1) {
+    setStatus("Keep one role");
+    return;
+  }
+
+  const role = roles.find((item) => item.id === roleId);
+  if (!role) {
+    return;
+  }
+
+  if (!window.confirm(`Remove ${role.name || "this role"}? This will remove its encounter info.`)) {
+    return;
+  }
+
+  state.roles = roles.filter((item) => item.id !== roleId);
+  state.encounters.forEach((encounter) => {
+    if (encounter.rows && typeof encounter.rows === "object") {
+      delete encounter.rows[roleId];
+    }
+  });
+  draggedRoleId = null;
+  saveState();
+  render();
+  setStatus("Role removed");
+}
+
+function createRole(index = getRoles().length) {
+  const roleNumber = index + 1;
+  return {
+    id: createUniqueRoleId(`custom-role-${roleNumber}`),
+    name: `New Role ${roleNumber}`,
+    className: "Open",
+    short: `R${roleNumber}`.slice(0, 4),
+    color: getRoleColorForIndex(index),
+    player: "",
+    slayerTag: index < 6 ? "Right Slayer" : "Left Slayer"
+  };
+}
+
+function ensureRoleRows(roleId) {
+  state.encounters.forEach((encounter) => {
+    if (!encounter.rows || typeof encounter.rows !== "object") {
+      encounter.rows = {};
+    }
+    if (!encounter.rows[roleId]) {
+      encounter.rows[roleId] = createEmptyRow();
+    }
+  });
+}
+
+function focusRoleEditor(roleId) {
+  window.requestAnimationFrame(() => {
+    const editor = elements.roleKey.querySelector(`[data-role-editor-id="${cssEscape(roleId)}"]`);
+    editor?.scrollIntoView({ behavior: "smooth", block: "center" });
+    editor?.querySelector("[data-role-field='player']")?.focus();
+  });
 }
 
 function handleRoleEditorInput(event) {
@@ -382,12 +491,14 @@ function render() {
 }
 
 function syncControls() {
+  state.settings = normalizeSettings(state.settings);
   elements.rosterTitle.value = state.meta.title || "";
   elements.trialName.value = state.meta.trial || "";
   elements.rosterDate.value = state.meta.date || "";
   elements.rosterTime.value = state.meta.time || "";
   elements.rosterLead.value = state.meta.lead || "";
   elements.rosterNotes.value = state.meta.notes || "";
+  elements.slayerGroupsToggle.checked = areSlayerGroupsEnabled();
   resizeTextarea(elements.rosterNotes);
 }
 
@@ -399,7 +510,10 @@ function syncHeader() {
 }
 
 function renderRoleKey() {
-  elements.roleKey.innerHTML = getRoles().map((role, index) => {
+  const roles = getRoles();
+  const showSlayerGroups = areSlayerGroupsEnabled();
+  elements.roleCount.textContent = String(roles.length);
+  elements.roleKey.innerHTML = roles.map((role, index) => {
     return `
       <div class="role-editor" data-role-editor-id="${escapeAttribute(role.id)}" style="--role-color: ${escapeAttribute(role.color)}">
         <div class="role-editor-top">
@@ -413,19 +527,27 @@ function renderRoleKey() {
           ></button>
           <span class="class-token" aria-hidden="true">${escapeHtml(role.short || "--")}</span>
           <strong>Role ${index + 1}</strong>
+          <button
+            class="role-delete-button"
+            type="button"
+            data-role-delete-id="${escapeAttribute(role.id)}"
+            aria-label="Remove ${escapeAttribute(role.name)}"
+            title="Remove role"
+            ${roles.length <= 1 ? "disabled" : ""}
+          >&times;</button>
         </div>
         <label>
           Player
           <input type="text" value="${escapeAttribute(role.player)}" data-role-id="${escapeAttribute(role.id)}" data-role-field="player" placeholder="@player">
         </label>
-        <label>
+        ${showSlayerGroups ? `<label>
           Slayer tag
           <select data-role-id="${escapeAttribute(role.id)}" data-role-field="slayerTag">
             ${SLAYER_TAGS.map((tag) => `
               <option value="${escapeAttribute(tag)}"${getRoleTag(role) === tag ? " selected" : ""}>${escapeHtml(tag)}</option>
             `).join("")}
           </select>
-        </label>
+        </label>` : ""}
         <label>
           Role
           <input type="text" value="${escapeAttribute(role.name)}" data-role-id="${escapeAttribute(role.id)}" data-role-field="name">
@@ -502,13 +624,13 @@ function renderExportSheet() {
       const encounterCount = Math.max(1, page.encounters.length);
       return `
       <section class="export-page" aria-label="Roster export page ${page.pageNumber}">
-        <div class="export-grid" style="--export-encounter-count: ${encounterCount}">
+        <div class="export-grid${page.showGroup ? "" : " is-flat"}" style="--export-encounter-count: ${encounterCount}; --export-role-count: ${Math.max(1, page.roles.length)}">
           <div class="export-program-cell">
             <strong>${escapeHtml(formatMetaValue("title"))}</strong>
             <span>${escapeHtml(formatDateTimeForExport())}</span>
           </div>
           ${page.encounters.map(renderExportEncounterHeader).join("")}
-          ${renderExportGroupRow(page.tag, page.roles.length)}
+          ${page.showGroup ? renderExportGroupRow(page.tag, page.roles.length) : ""}
           ${page.roles.map((role) => renderExportRoleBand(role, page.encounters)).join("")}
         </div>
       </section>
@@ -521,6 +643,19 @@ function getExportPageModels() {
   const encounterPages = chunkEncounters(state.encounters, EXPORT_ENCOUNTERS_PER_PAGE);
   let pageNumber = 0;
 
+  if (!areSlayerGroupsEnabled()) {
+    return encounterPages.map((encounters) => {
+      pageNumber += 1;
+      return {
+        pageNumber,
+        encounters,
+        tag: "Roles",
+        showGroup: false,
+        roles: getRoles()
+      };
+    });
+  }
+
   return encounterPages.flatMap((encounters) => {
     return SLAYER_TAGS.map((tag) => {
       pageNumber += 1;
@@ -528,6 +663,7 @@ function getExportPageModels() {
         pageNumber,
         encounters,
         tag,
+        showGroup: true,
         roles: getRoles().filter((role) => getRoleTag(role) === tag)
       };
     });
@@ -630,6 +766,9 @@ function renderEncounterSection(encounter) {
 
 function renderRoleRow(encounter, role) {
   const row = encounter.rows[role.id] || createEmptyRow();
+  const slayerTag = areSlayerGroupsEnabled()
+    ? `<small>${escapeHtml(getRoleTag(role))}</small>`
+    : "";
   return `
     <article class="role-row" data-role-row-id="${escapeAttribute(role.id)}" style="--role-color: ${role.color}">
       <div class="role-cell">
@@ -645,7 +784,7 @@ function renderRoleRow(encounter, role) {
         <div>
           <strong>${escapeHtml(role.name)}</strong>
           <span>${escapeHtml(role.className)}</span>
-          <small>${escapeHtml(getRoleTag(role))}</small>
+          ${slayerTag}
           <em>${escapeHtml(role.player || "Player")}</em>
         </div>
       </div>
@@ -675,8 +814,10 @@ function renderField(encounterId, roleId, field, value) {
 }
 
 function createDefaultRoster() {
+  const roles = DEFAULT_ROLES.map((role) => ({ ...role }));
   return {
-    version: 2,
+    version: 3,
+    settings: { ...DEFAULT_SETTINGS },
     meta: {
       title: "Trial Roster",
       trial: "",
@@ -685,23 +826,23 @@ function createDefaultRoster() {
       lead: "",
       notes: ""
     },
-    roles: DEFAULT_ROLES.map((role) => ({ ...role })),
-    encounters: DEFAULT_ENCOUNTERS.map((name) => createEncounter(name))
+    roles,
+    encounters: DEFAULT_ENCOUNTERS.map((name) => createEncounter(name, roles))
   };
 }
 
-function createEncounter(name) {
+function createEncounter(name, roles = getRoles()) {
   return {
     id: createId(),
     name,
     notes: "",
-    rows: createRows()
+    rows: createRows({}, roles)
   };
 }
 
-function createRows(source = {}) {
-  return DEFAULT_ROLES.reduce((rows, role) => {
-    rows[role.id] = { ...createEmptyRow(), ...(source[role.id] || {}) };
+function createRows(source = {}, roles = DEFAULT_ROLES) {
+  return roles.reduce((rows, role) => {
+    rows[role.id] = normalizeRow(source[role.id]);
     return rows;
   }, {});
 }
@@ -709,6 +850,14 @@ function createRows(source = {}) {
 function createEmptyRow() {
   return ROW_FIELDS.reduce((row, field) => {
     row[field] = "";
+    return row;
+  }, {});
+}
+
+function normalizeRow(input = {}) {
+  const source = input && typeof input === "object" ? input : {};
+  return ROW_FIELDS.reduce((row, field) => {
+    row[field] = typeof source[field] === "string" ? source[field] : "";
     return row;
   }, {});
 }
@@ -726,55 +875,42 @@ function normalizeRoster(input) {
   const encounters = Array.isArray(roster.encounters) && roster.encounters.length
     ? roster.encounters
     : fallback.encounters;
-  const normalizedEncounters = encounters.map(normalizeEncounter);
+  const normalizedRoles = normalizeRoles(roster.roles, encounters);
+  const normalizedEncounters = encounters.map((encounter) => normalizeEncounter(encounter, normalizedRoles));
 
   return {
-    version: 2,
+    version: 3,
+    settings: normalizeSettings(roster.settings),
     meta: {
       ...fallback.meta,
       ...(roster.meta && typeof roster.meta === "object" ? roster.meta : {})
     },
-    roles: normalizeRoles(roster.roles, normalizedEncounters),
+    roles: normalizedRoles,
     encounters: normalizedEncounters
   };
 }
 
 function normalizeRoles(inputRoles, encounters = []) {
   const savedRoles = Array.isArray(inputRoles) ? inputRoles.filter((role) => role && typeof role === "object") : [];
-  const defaultIds = new Set(DEFAULT_ROLES.map((role) => role.id));
-  const savedById = new Map(savedRoles
-    .filter((role) => defaultIds.has(role.id))
-    .map((role) => [role.id, role]));
-  const orderedIds = [];
+  const sourceRoles = savedRoles.length ? savedRoles : DEFAULT_ROLES;
+  const usedIds = new Set();
 
-  savedRoles.forEach((role) => {
-    if (defaultIds.has(role.id) && !orderedIds.includes(role.id)) {
-      orderedIds.push(role.id);
-    }
+  return sourceRoles.map((role, index) => {
+    const defaultRole = DEFAULT_ROLES.find((item) => item.id === role.id) || DEFAULT_ROLES[index] || DEFAULT_ROLES[0];
+    const roleId = normalizeRoleId(role.id, defaultRole?.id || `role-${index + 1}`, usedIds);
+    const fallbackTag = defaultRole?.slayerTag || (index < 6 ? "Right Slayer" : "Left Slayer");
+    const shortValue = typeof role.short === "string" ? role.short : role.code;
+
+    return {
+      id: roleId,
+      name: normalizeRoleText(role.name, defaultRole?.name || `Role ${index + 1}`),
+      className: normalizeRoleText(role.className, defaultRole?.className || "Open"),
+      short: normalizeRoleText(shortValue, defaultRole?.short || `R${index + 1}`).slice(0, 4),
+      color: normalizeRoleColor(role.color, defaultRole?.color || getRoleColorForIndex(index)),
+      player: normalizeRoleText(role.player, migrateRolePlayer(roleId, encounters)),
+      slayerTag: normalizeSlayerTag(role.slayerTag || role.tag || role.subpanel, fallbackTag)
+    };
   });
-  DEFAULT_ROLES.forEach((role) => {
-    if (!orderedIds.includes(role.id)) {
-      orderedIds.push(role.id);
-    }
-  });
-
-  const normalizedById = new Map(DEFAULT_ROLES.map((defaultRole) => {
-    const savedRole = savedById.get(defaultRole.id) || {};
-    return [defaultRole.id, {
-      ...defaultRole,
-      name: normalizeRoleText(savedRole.name, defaultRole.name),
-      className: normalizeRoleText(savedRole.className, defaultRole.className),
-      short: normalizeRoleText(savedRole.short, defaultRole.short).slice(0, 4),
-      color: normalizeRoleColor(savedRole.color, defaultRole.color),
-      player: normalizeRoleText(savedRole.player, migrateRolePlayer(defaultRole.id, encounters)),
-      slayerTag: normalizeSlayerTag(
-        savedRole.slayerTag || savedRole.tag || savedRole.subpanel,
-        defaultRole.slayerTag
-      )
-    }];
-  }));
-
-  return orderedIds.map((id) => normalizedById.get(id));
 }
 
 function normalizeRoleText(value, fallback = "") {
@@ -785,8 +921,36 @@ function normalizeRoleColor(value, fallback) {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
 }
 
+function normalizeRoleId(value, fallback, usedIds) {
+  const base = typeof value === "string" && value.trim()
+    ? value.trim()
+    : fallback;
+  let candidate = base || `role-${usedIds.size + 1}`;
+  let suffix = 2;
+
+  while (usedIds.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  usedIds.add(candidate);
+  return candidate;
+}
+
 function normalizeSlayerTag(value, fallback) {
   return SLAYER_TAGS.includes(value) ? value : fallback;
+}
+
+function normalizeSettings(value = {}) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    ...DEFAULT_SETTINGS,
+    slayerGroupsEnabled: source.slayerGroupsEnabled !== false && source.showSlayerGroups !== false
+  };
+}
+
+function areSlayerGroupsEnabled() {
+  return state.settings?.slayerGroupsEnabled !== false;
 }
 
 function getRoleTag(role) {
@@ -803,13 +967,13 @@ function migrateRolePlayer(roleId, encounters) {
   return "";
 }
 
-function normalizeEncounter(encounter) {
+function normalizeEncounter(encounter, roles = DEFAULT_ROLES) {
   const normalized = encounter && typeof encounter === "object" ? encounter : {};
   return {
     id: typeof normalized.id === "string" && normalized.id ? normalized.id : createId(),
     name: typeof normalized.name === "string" && normalized.name ? normalized.name : "Encounter",
     notes: typeof normalized.notes === "string" ? normalized.notes : "",
-    rows: createRows(normalized.rows && typeof normalized.rows === "object" ? normalized.rows : {})
+    rows: createRows(normalized.rows && typeof normalized.rows === "object" ? normalized.rows : {}, roles)
   };
 }
 
@@ -1189,7 +1353,8 @@ function drawExportPageCanvas(ctx, page) {
   const padding = 32;
   const gap = 11;
   const headerHeight = 116;
-  const groupHeight = 64;
+  const showGroup = page.showGroup !== false;
+  const groupHeight = showGroup ? 64 : 0;
   const encounterCount = Math.max(1, page.encounters.length);
   const gridX = padding;
   const gridY = padding;
@@ -1199,9 +1364,10 @@ function drawExportPageCanvas(ctx, page) {
   const roleWidth = unit * 0.47;
   const encounterWidth = unit;
   const rowCount = Math.max(6, page.roles.length || 6);
-  const roleHeight = (gridHeight - headerHeight - groupHeight - gap * (rowCount + 1)) / rowCount;
+  const verticalGapCount = showGroup ? rowCount + 1 : rowCount;
+  const roleHeight = (gridHeight - headerHeight - groupHeight - gap * verticalGapCount) / rowCount;
   const groupY = gridY + headerHeight + gap;
-  const firstRoleY = groupY + groupHeight + gap;
+  const firstRoleY = showGroup ? groupY + groupHeight + gap : gridY + headerHeight + gap;
 
   drawExportPageBackground(ctx, width, height, theme);
   drawProgramCell(ctx, gridX, gridY, roleWidth, headerHeight, theme);
@@ -1211,7 +1377,9 @@ function drawExportPageCanvas(ctx, page) {
     drawEncounterHeader(ctx, x, gridY, encounterWidth, headerHeight, encounter.name || `Encounter ${index + 1}`, theme);
   });
 
-  drawGroupRowCanvas(ctx, gridX, groupY, gridWidth, groupHeight, page.tag, page.roles.length, theme);
+  if (showGroup) {
+    drawGroupRowCanvas(ctx, gridX, groupY, gridWidth, groupHeight, page.tag, page.roles.length, theme);
+  }
 
   page.roles.forEach((role, rowIndex) => {
     const y = firstRoleY + rowIndex * (roleHeight + gap);
@@ -1859,6 +2027,24 @@ function createId() {
     return window.crypto.randomUUID();
   }
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function createUniqueRoleId(base) {
+  const existingIds = new Set(getRoles().map((role) => role.id));
+  const cleanBase = slugify(base || "custom-role") || "custom-role";
+  let candidate = cleanBase;
+  let suffix = 2;
+
+  while (existingIds.has(candidate)) {
+    candidate = `${cleanBase}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+}
+
+function getRoleColorForIndex(index) {
+  return ROLE_COLOR_PALETTE[index % ROLE_COLOR_PALETTE.length];
 }
 
 function slugify(value) {
