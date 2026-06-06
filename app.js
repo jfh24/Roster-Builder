@@ -1,22 +1,23 @@
 const STORAGE_KEY = "modern-trial-roster-v1";
 const THEME_STORAGE_KEY = "modern-trial-roster-theme";
+const ROSTER_VERSION = 4;
 
 const DEFAULT_ROLES = [
-  { id: "main-tank", name: "Main Tank", className: "Nightblade", short: "MT", color: "#b45309", player: "", slayerTag: "Right Slayer" },
-  { id: "off-tank", name: "Off Tank", className: "Sorcerer", short: "OT", color: "#6d5bd0", player: "", slayerTag: "Right Slayer" },
-  { id: "courage-healer", name: "Courage Healer", className: "Warden", short: "CH", color: "#0f766e", player: "", slayerTag: "Right Slayer" },
-  { id: "slayer-healer", name: "Slayer Healer", className: "Dragonknight", short: "SH", color: "#c24136", player: "", slayerTag: "Right Slayer" },
-  { id: "zenkosh", name: "ZenKosh", className: "Support", short: "ZK", color: "#8b5a2b", player: "", slayerTag: "Right Slayer" },
-  { id: "slayer-dps", name: "Slayer DPS", className: "Nightblade", short: "SD", color: "#b45309", player: "", slayerTag: "Right Slayer" },
-  { id: "force-dps", name: "Force DPS", className: "Arcanist", short: "FD", color: "#0f8a78", player: "", slayerTag: "Left Slayer" },
-  { id: "morag-dps", name: "Morag DPS", className: "Necromancer", short: "MD", color: "#5b6f7c", player: "", slayerTag: "Left Slayer" },
-  { id: "parse-nightblade", name: "Parse DPS", className: "Nightblade", short: "NB", color: "#b45309", player: "", slayerTag: "Left Slayer" },
-  { id: "parse-warden", name: "Parse DPS", className: "Warden", short: "WD", color: "#0f766e", player: "", slayerTag: "Left Slayer" },
-  { id: "parse-templar", name: "Parse DPS", className: "Templar", short: "TP", color: "#a16207", player: "", slayerTag: "Left Slayer" },
-  { id: "parse-open", name: "Parse DPS", className: "Open", short: "OP", color: "#4b5563", player: "", slayerTag: "Left Slayer" }
+  { id: "main-tank", name: "Main Tank", className: "Nightblade", short: "MT", color: "#b45309", player: "", slayerTag: "Left Slayer" },
+  { id: "off-tank", name: "Off Tank", className: "Sorcerer", short: "OT", color: "#6d5bd0", player: "", slayerTag: "Left Slayer" },
+  { id: "courage-healer", name: "Courage Healer", className: "Warden", short: "CH", color: "#0f766e", player: "", slayerTag: "Left Slayer" },
+  { id: "slayer-healer", name: "Slayer Healer", className: "Dragonknight", short: "SH", color: "#c24136", player: "", slayerTag: "Left Slayer" },
+  { id: "zenkosh", name: "ZenKosh", className: "Support", short: "ZK", color: "#8b5a2b", player: "", slayerTag: "Left Slayer" },
+  { id: "slayer-dps", name: "Slayer DPS", className: "Nightblade", short: "SD", color: "#b45309", player: "", slayerTag: "Left Slayer" },
+  { id: "force-dps", name: "Force DPS", className: "Arcanist", short: "FD", color: "#0f8a78", player: "", slayerTag: "Right Slayer" },
+  { id: "morag-dps", name: "Morag DPS", className: "Necromancer", short: "MD", color: "#5b6f7c", player: "", slayerTag: "Right Slayer" },
+  { id: "parse-nightblade", name: "Parse DPS", className: "Nightblade", short: "NB", color: "#b45309", player: "", slayerTag: "Right Slayer" },
+  { id: "parse-warden", name: "Parse DPS", className: "Warden", short: "WD", color: "#0f766e", player: "", slayerTag: "Right Slayer" },
+  { id: "parse-templar", name: "Parse DPS", className: "Templar", short: "TP", color: "#a16207", player: "", slayerTag: "Right Slayer" },
+  { id: "parse-open", name: "Parse DPS", className: "Open", short: "OP", color: "#4b5563", player: "", slayerTag: "Right Slayer" }
 ];
 
-const SLAYER_TAGS = ["Right Slayer", "Left Slayer"];
+const SLAYER_TAGS = ["Left Slayer", "Right Slayer"];
 
 const DEFAULT_SETTINGS = {
   slayerGroupsEnabled: true
@@ -321,7 +322,7 @@ function createRole(index = getRoles().length) {
     short: `R${roleNumber}`.slice(0, 4),
     color: getRoleColorForIndex(index),
     player: "",
-    slayerTag: index < 6 ? "Right Slayer" : "Left Slayer"
+    slayerTag: getSlayerTagForRoleIndex(index)
   };
 }
 
@@ -482,6 +483,7 @@ function getRoleDropTargetId(target) {
 }
 
 function render() {
+  applySlayerTagsByRoleOrder();
   syncControls();
   renderRoleKey();
   renderEncounterNav();
@@ -514,6 +516,7 @@ function renderRoleKey() {
   const showSlayerGroups = areSlayerGroupsEnabled();
   elements.roleCount.textContent = String(roles.length);
   elements.roleKey.innerHTML = roles.map((role, index) => {
+    const visibleSlayerTag = getSlayerTagForRoleIndex(index);
     return `
       <div class="role-editor" data-role-editor-id="${escapeAttribute(role.id)}" style="--role-color: ${escapeAttribute(role.color)}">
         <div class="role-editor-top">
@@ -544,7 +547,7 @@ function renderRoleKey() {
           Slayer tag
           <select data-role-id="${escapeAttribute(role.id)}" data-role-field="slayerTag">
             ${SLAYER_TAGS.map((tag) => `
-              <option value="${escapeAttribute(tag)}"${getRoleTag(role) === tag ? " selected" : ""}>${escapeHtml(tag)}</option>
+              <option value="${escapeAttribute(tag)}"${visibleSlayerTag === tag ? " selected" : ""}>${escapeHtml(tag)}</option>
             `).join("")}
           </select>
         </label>` : ""}
@@ -642,6 +645,7 @@ function renderExportSheet() {
 function getExportPageModels() {
   const encounterPages = chunkEncounters(state.encounters, EXPORT_ENCOUNTERS_PER_PAGE);
   let pageNumber = 0;
+  const rolesBySlayerTag = getRolesByVisibleSlayerTag();
 
   if (!areSlayerGroupsEnabled()) {
     return encounterPages.map((encounters) => {
@@ -664,7 +668,7 @@ function getExportPageModels() {
         encounters,
         tag,
         showGroup: true,
-        roles: getRoles().filter((role) => getRoleTag(role) === tag)
+        roles: rolesBySlayerTag[tag] || []
       };
     });
   });
@@ -758,16 +762,16 @@ function renderEncounterSection(encounter) {
           <span>Passives / masteries</span>
           <span>Misc</span>
         </div>
-        ${getRoles().map((role) => renderRoleRow(encounter, role)).join("")}
+        ${getRoles().map((role, index) => renderRoleRow(encounter, role, index)).join("")}
       </div>
     </section>
   `;
 }
 
-function renderRoleRow(encounter, role) {
+function renderRoleRow(encounter, role, visibleIndex) {
   const row = encounter.rows[role.id] || createEmptyRow();
   const slayerTag = areSlayerGroupsEnabled()
-    ? `<small>${escapeHtml(getRoleTag(role))}</small>`
+    ? `<small>${escapeHtml(getSlayerTagForRoleIndex(visibleIndex))}</small>`
     : "";
   return `
     <article class="role-row" data-role-row-id="${escapeAttribute(role.id)}" style="--role-color: ${role.color}">
@@ -816,7 +820,7 @@ function renderField(encounterId, roleId, field, value) {
 function createDefaultRoster() {
   const roles = DEFAULT_ROLES.map((role) => ({ ...role }));
   return {
-    version: 3,
+    version: ROSTER_VERSION,
     settings: { ...DEFAULT_SETTINGS },
     meta: {
       title: "Trial Roster",
@@ -876,10 +880,11 @@ function normalizeRoster(input) {
     ? roster.encounters
     : fallback.encounters;
   const normalizedRoles = normalizeRoles(roster.roles, encounters);
+  applySlayerTagsByRoleOrder(normalizedRoles);
   const normalizedEncounters = encounters.map((encounter) => normalizeEncounter(encounter, normalizedRoles));
 
   return {
-    version: 3,
+    version: ROSTER_VERSION,
     settings: normalizeSettings(roster.settings),
     meta: {
       ...fallback.meta,
@@ -898,7 +903,7 @@ function normalizeRoles(inputRoles, encounters = []) {
   return sourceRoles.map((role, index) => {
     const defaultRole = DEFAULT_ROLES.find((item) => item.id === role.id) || DEFAULT_ROLES[index] || DEFAULT_ROLES[0];
     const roleId = normalizeRoleId(role.id, defaultRole?.id || `role-${index + 1}`, usedIds);
-    const fallbackTag = defaultRole?.slayerTag || (index < 6 ? "Right Slayer" : "Left Slayer");
+    const fallbackTag = defaultRole?.slayerTag || getSlayerTagForRoleIndex(index);
     const shortValue = typeof role.short === "string" ? role.short : role.code;
 
     return {
@@ -954,7 +959,19 @@ function areSlayerGroupsEnabled() {
 }
 
 function getRoleTag(role) {
+  const index = getRoles().findIndex((item) => item.id === role.id);
+  if (index >= 0) {
+    return getSlayerTagForRoleIndex(index);
+  }
   return normalizeSlayerTag(role.slayerTag || role.tag || role.subpanel, "Right Slayer");
+}
+
+function getRolesByVisibleSlayerTag() {
+  return getRoles().reduce((groups, role, index) => {
+    const tag = getSlayerTagForRoleIndex(index);
+    groups[tag].push(role);
+    return groups;
+  }, Object.fromEntries(SLAYER_TAGS.map((tag) => [tag, []])));
 }
 
 function migrateRolePlayer(roleId, encounters) {
@@ -1031,6 +1048,7 @@ function syncThemeToggle() {
 
 function saveState() {
   window.clearTimeout(saveTimer);
+  applySlayerTagsByRoleOrder();
   elements.saveStatus.textContent = "Saving";
   persistState(state);
   saveTimer = window.setTimeout(() => setStatus("Saved"), 180);
@@ -1068,10 +1086,14 @@ function reorderItemById(items, draggedId, targetId, insertAfter = false) {
   return true;
 }
 
-function applySlayerTagsByRoleOrder() {
-  getRoles().forEach((role, index) => {
-    role.slayerTag = index < 6 ? "Right Slayer" : "Left Slayer";
+function applySlayerTagsByRoleOrder(roles = getRoles()) {
+  roles.forEach((role, index) => {
+    role.slayerTag = getSlayerTagForRoleIndex(index);
   });
+}
+
+function getSlayerTagForRoleIndex(index) {
+  return index < 6 ? "Left Slayer" : "Right Slayer";
 }
 
 function shouldInsertAfter(event, element) {

@@ -1,10 +1,12 @@
 const http = require("node:http");
 const fs = require("node:fs/promises");
+const fsSync = require("node:fs");
 const path = require("node:path");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 5173);
 const host = process.env.HOST || "0.0.0.0";
+const pidFile = path.join(root, ".server.pid");
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -44,6 +46,30 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
+function removePidFile() {
+  try {
+    if (fsSync.existsSync(pidFile) && fsSync.readFileSync(pidFile, "utf8").trim() === String(process.pid)) {
+      fsSync.unlinkSync(pidFile);
+    }
+  } catch (error) {
+    console.warn(`Could not remove PID file: ${error.message}`);
+  }
+}
+
+function shutdown() {
+  server.close(() => {
+    removePidFile();
+    process.exit(0);
+  });
+
+  setTimeout(() => process.exit(0), 2000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("exit", removePidFile);
+
 server.listen(port, host, () => {
+  fsSync.writeFileSync(pidFile, String(process.pid));
   console.log(`Roster Builder running at http://${host}:${port}`);
 });
